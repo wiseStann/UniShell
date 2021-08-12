@@ -1,4 +1,5 @@
-#include "common.h"
+#include "../include/common.h"
+
 
 // available commands
 const char* COMMANDS[COMMANDS_MAX_NUM] = {

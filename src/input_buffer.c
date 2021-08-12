@@ -1,5 +1,5 @@
-#include "common.h"
-#include "input_buffer.h"
+#include "../include/common.h"
+#include "../include/input_buffer.h"
 
 
 /*

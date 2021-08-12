@@ -1,6 +1,6 @@
-#include "common.h"
-#include "parser.h"
-#include "input_buffer.h"
+#include "include/common.h"
+#include "include/parser.h"
+#include "include/input_buffer.h"
 
 
 int main(int argc, char** argv)
