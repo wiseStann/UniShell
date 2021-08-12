@@ -21,6 +21,7 @@ typedef struct arg {
 // command structure
 typedef struct cmd {
     char* name;
+    unsigned int length;
     argument_t** arguments;
     unsigned int args_num;
 } command_t;
@@ -44,6 +45,9 @@ unsigned int command_parse_arguments_number(const char*);
 
 // gets the basename of a given command, i.e. the name of the command
 char* command_parse_get_basename(const char*);  
+
+// frees a command struct
+void command_free(command_t*);
 
 
 #endif // ! SHELL_PARSER_H

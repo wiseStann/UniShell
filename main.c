@@ -23,17 +23,17 @@ int main(int argc, char** argv)
         cmd = command_parse_new((const char*)input->buffer);
         if (cmd) {
             printf("Command name: %s\n", cmd->name);
-            printf("Arguments: ");
+            printf("Arguments:\n");
             for (int i = 0; i < cmd->args_num; i++) {
-                printf("%s ", cmd->arguments[i]->name);
+                printf("name: '%s', size: %ld\n", cmd->arguments[i]->name, strlen(cmd->arguments[i]->name));
             }
             printf("\n");
         } else {
-            printf("Command is invalid\n");
+            printf("Invalid command\n");
         }
-
         input_free(input);
     }
+    command_free(cmd);
 
     return 0;
 }

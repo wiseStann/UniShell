@@ -56,6 +56,10 @@ enum SYMBOL_KIND {
      */
     FORWARD_SLASH_SYMBOL = '/',
 
+    /*
+     *
+     */
+    TERMINAL_SYMBOL = '\0',
 };
 
 

@@ -30,6 +30,8 @@ command_new(const char* command)
     struct_command->name = (char*)malloc(COMMAND_NAME_MAX_LEN);
     struct_command->name = command_parse_get_basename(command);
 
+    struct_command->length = strlen(command);
+
     cmd_args_num = command_parse_arguments_number(command);
     struct_command->args_num = cmd_args_num;
 
@@ -52,38 +54,52 @@ command_parse_new(const char* command)
     command_t* struct_command = command_new(command);
     if (!struct_command) return NULL;
 
+    int cmd_name_len = strlen(struct_command->name);
+    if (command[cmd_name_len] == 0) return struct_command;
+
+    char curr, prev = command[cmd_name_len];
+    int arg_idx_start = cmd_name_len, args_idx = 0, quote_is_completed = 1;
     argument_t* argument = command_argument_new();
+    for (int i = cmd_name_len; i <= struct_command->length; i++) {
+        curr = command[i];
+        
+        // skip spaces
+        if (curr == SPACE_SYMBOL && prev == SPACE_SYMBOL) continue;
 
-    char prev;
-    int arg_idx_start, args_idx = 0, quote_is_completed = 1, cmd_name_len = strlen(struct_command->name);
-    for (int i = cmd_name_len; command[i] != 0; i++) {
-        if (i == cmd_name_len)
-            arg_idx_start = i;
-
-        if (command[i] == SPACE_SYMBOL) {
-            argument->name[i - arg_idx_start] = '\0';
+        // pushing parsed argument
+        if ((curr == SPACE_SYMBOL || curr == TERMINAL_SYMBOL) && prev != SPACE_SYMBOL) {
+            if (prev == DOUBLE_QUOTE_SYMBOL) argument->name[i - arg_idx_start - 2] = '\0';
+            else argument->name[i - arg_idx_start + 1] = '\0'; 
             struct_command->arguments[args_idx++] = argument;
-            arg_idx_start = i + 1;
-            free(argument);
+            arg_idx_start = i;
             argument = command_argument_new();
-        } else if (command[i] == COMMENT_SYMBOL) {
+        }
+        // handling commentaries
+        else if (curr == COMMENT_SYMBOL) {
             if (prev != SPACE_SYMBOL) {
                 argument->name[i - arg_idx_start] = '\0';
-                printf("%s\n", argument->name);
                 struct_command->arguments[args_idx++] = argument;
-                free(argument);
             }
             break;
-        } else if (command[i] == DOUBLE_QUOTE_SYMBOL) {
-            if (quote_is_completed)
-                quote_is_completed = 0;
-            else
-                quote_is_completed = 1;
-        } else {
-            argument->name[argument->size++] = command[i];
         }
-        prev = command[i];
+        // handling double quotes
+        else if (curr == DOUBLE_QUOTE_SYMBOL) {
+            arg_idx_start = i;
+            if (quote_is_completed) {
+                do {
+                    i++;
+                    argument->name[argument->size++] = command[i];
+                } while (command[i] != DOUBLE_QUOTE_SYMBOL);
+            }
+            quote_is_completed = (quote_is_completed + 1) % 2;
+        }
+        // pushing parsed symbol to argument
+        else {
+            argument->name[argument->size++] = curr;
+        }
+        prev = curr;
     }
+    free(argument);
 
     return struct_command;
 }
@@ -94,15 +110,23 @@ command_parse_new(const char* command)
 int
 command_parse_is_valid(const char* command)
 {
-    unsigned int quotes_num = 0;
+    char curr, prev;
+    unsigned int quotes_num = 0, quote_is_completed = 1;
     for (int i = 0; command[i] != 0; i++) {
-        if (command[i] == DOUBLE_QUOTE_SYMBOL)
+        curr = command[i];
+        if (curr == DOUBLE_QUOTE_SYMBOL) {
+            if (quote_is_completed && prev != SPACE_SYMBOL) return FALSE;
+            quote_is_completed = (quote_is_completed + 1) % 2;
             quotes_num++;
-        if (command[i] == FORWARD_SLASH_SYMBOL)
+        }
+        if (prev == DOUBLE_QUOTE_SYMBOL && quote_is_completed && curr != SPACE_SYMBOL)
             return FALSE;
-        if (!char_array_contains(SPEC_SYMBOLS, SPEC_SYMBOLS_NUM, command[i]) &&
-            (command[i] < 65 || command[i] > 90) && (command[i] < 97 || command[i] > 122))
+        if (curr == FORWARD_SLASH_SYMBOL)
             return FALSE;
+        if (!char_array_contains(SPEC_SYMBOLS, SPEC_SYMBOLS_NUM, curr) &&
+            (curr < 65 || curr > 90) && (curr < 97 || curr > 122))
+            return FALSE;
+        prev = curr;
     }
     if (quotes_num % 2)
         return FALSE;
@@ -116,11 +140,31 @@ command_parse_is_valid(const char* command)
 unsigned int
 command_parse_arguments_number(const char* command)
 {
-    unsigned int args_num = 0;
-    for (int i = 0; command[i] != 0; i++) {
-        if (command[i] == ' ') args_num++;
+    char curr, prev;
+    unsigned int args_num = 0, quote_is_completed = 1;
+    unsigned int cmd_len = strlen(command);
+    for (int i = 0; i <= cmd_len; i++) {
+        curr = command[i];
+        
+        if (curr == SPACE_SYMBOL && prev == SPACE_SYMBOL) continue;
+        if ((curr == SPACE_SYMBOL || curr == TERMINAL_SYMBOL) && prev != SPACE_SYMBOL) {
+            args_num++;
+        }
+        else if (curr == DOUBLE_QUOTE_SYMBOL) {
+            if (quote_is_completed) {
+                do {
+                    i++;
+                } while (command[i] != DOUBLE_QUOTE_SYMBOL);
+            }
+            quote_is_completed = (quote_is_completed + 1) % 2;
+        } else if (curr == COMMENT_SYMBOL) {
+            args_num++;
+            break;
+        }
+        prev = curr;
     }
-    return args_num++;
+    printf("The number of arguments = %d\n", args_num - 1);
+    return args_num - 1;
 }
 
 /*
@@ -136,4 +180,18 @@ command_parse_get_basename(const char* command)
     }
     basename[i] = '\0';
     return basename;
+}
+
+/*
+ *
+ */
+void command_free(command_t* command)
+{
+    if (command->args_num) {
+        for (int i = 0; i < command->args_num; i++) 
+            free(command->arguments[i]);
+        free(command->arguments);
+    }
+    free(command->name);
+    free(command);
 }
