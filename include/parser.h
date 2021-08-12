@@ -8,6 +8,7 @@
 
 /* How shell syntax looks like:
  * shell>$ command arg1 arg2 arg3 ... argN
+ * shell>$ command "args args args" arg2 ... argN
  */
 
 
@@ -24,6 +25,7 @@ typedef struct cmd {
     unsigned int length;
     argument_t** arguments;
     unsigned int args_num;
+    int table_index;
 } command_t;
 
 
@@ -37,8 +39,17 @@ command_t* command_new(const char*);
 // parses a given command and returns command_t* or NULL 
 command_t* command_parse_new(const char*);
 
+//
+int command_handle(command_t*);
+
 // parses a given command and validates it
 int command_parse_is_valid(const char*);
+
+//
+int command_parse_basename_exists(const char*);
+
+//
+int command_parse_syntax_is_valid(const char*);
 
 // parses a given command and returns the number of its arguments
 unsigned int command_parse_arguments_number(const char*);

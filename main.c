@@ -20,17 +20,20 @@ int main(int argc, char** argv)
         input_buffer_push(input, '\0');
         if (!strcmp(input->buffer, "exit")) break;
 
-        cmd = command_parse_new((const char*)input->buffer);
+        cmd = command_parse_new(input->buffer);
         if (cmd) {
-            printf("Command name: %s\n", cmd->name);
-            printf("Arguments:\n");
-            for (int i = 0; i < cmd->args_num; i++) {
-                printf("name: '%s', size: %ld\n", cmd->arguments[i]->name, strlen(cmd->arguments[i]->name));
-            }
-            printf("\n");
-        } else {
-            printf("Invalid command\n");
+            // printf("Command name: %s\n", cmd->name);
+            // printf("Arguments: ");
+            // for (int i = 0; i < cmd->args_num; i++) {
+            //     printf("'%s' ", cmd->arguments[i]->name);
+            // }
+            // printf("\n");
+
+            int status = command_handle(cmd);
+            if (!status)
+                printf("Invalid set of arguments was given to the command '%s'\n", cmd->name);
         }
+
         input_free(input);
     }
     command_free(cmd);

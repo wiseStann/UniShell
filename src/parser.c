@@ -19,16 +19,19 @@ command_argument_new()
 command_t*
 command_new(const char* command)
 {
-    if (!command_parse_is_valid(command))
+    if (!command_parse_is_valid(command)) {
         return NULL;
+    }
 
     command_t* struct_command;
     argument_t* argument;
     unsigned int cmd_args_num;
-
+    
     struct_command = (command_t*)malloc(sizeof(command_t));
     struct_command->name = (char*)malloc(COMMAND_NAME_MAX_LEN);
     struct_command->name = command_parse_get_basename(command);
+
+    struct_command->table_index = commands_array_get_index(AVAILABLE_COMMANDS, struct_command->name);
 
     struct_command->length = strlen(command);
 
@@ -108,7 +111,66 @@ command_parse_new(const char* command)
  *
  */
 int
+command_handle(command_t* command)
+{
+    COMMANDS_ALIASES cmd_alias = (COMMANDS_ALIASES)(command->table_index);
+    switch (cmd_alias) {
+        case ECHO_CMD:
+            printf("Will be released soon.\n");
+            break;
+        case LS_CMD:
+            printf("Will be released soon.\n");
+            break;
+        case PWD_CMD:
+            printf("Will be released soon.\n");
+            break;
+        case CLEAR_CMD:
+            printf("Will be released soon.\n");
+            break;
+        case CMDS_LIST_CMD:
+            commands_show();
+            break;
+        default:
+            return STATUS_FAILURE;
+            break;
+    }
+    return STATUS_SUCCESS;
+}
+
+/*
+ *
+ */
+int
 command_parse_is_valid(const char* command)
+{
+    char* basename = command_parse_get_basename(command);
+    int ex_factor = command_parse_basename_exists(basename);
+    int val_syntax_factor = command_parse_syntax_is_valid(command);
+    if (!ex_factor) {
+        printf("! Unknow command '%s'\n", basename);
+        printf("! Commands list is available by typing 'cmdslist'\n");
+    }
+    else if (!val_syntax_factor)
+        printf("! Invalid command syntax\n");
+    
+    free(basename);
+    return ex_factor && val_syntax_factor;
+}
+
+/*
+ *
+ */
+int
+command_parse_basename_exists(const char* basename)
+{
+    return commands_array_contains(AVAILABLE_COMMANDS, basename);
+}
+
+/*
+ *
+ */
+int
+command_parse_syntax_is_valid(const char* command)
 {
     char curr, prev;
     unsigned int quotes_num = 0, quote_is_completed = 1;
@@ -123,7 +185,7 @@ command_parse_is_valid(const char* command)
             return FALSE;
         if (curr == FORWARD_SLASH_SYMBOL)
             return FALSE;
-        if (!char_array_contains(SPEC_SYMBOLS, SPEC_SYMBOLS_NUM, curr) &&
+        if (!char_array_contains(SPEC_SYMBOLS, curr) &&
             (curr < 65 || curr > 90) && (curr < 97 || curr > 122))
             return FALSE;
         prev = curr;
@@ -163,7 +225,6 @@ command_parse_arguments_number(const char* command)
         }
         prev = curr;
     }
-    printf("The number of arguments = %d\n", args_num - 1);
     return args_num - 1;
 }
 
@@ -187,11 +248,13 @@ command_parse_get_basename(const char* command)
  */
 void command_free(command_t* command)
 {
-    if (command->args_num) {
-        for (int i = 0; i < command->args_num; i++) 
-            free(command->arguments[i]);
-        free(command->arguments);
+    if (command) {
+        if (command->args_num) {
+            for (int i = 0; i < command->args_num; i++) 
+                free(command->arguments[i]);
+            free(command->arguments);
+        }
+        free(command->name);
+        free(command);
     }
-    free(command->name);
-    free(command);
 }
