@@ -19,6 +19,7 @@
 #define ENTER_CODE 10
 
 
+// available command structure
 typedef struct avaliable_commands_entry {
     char* cmd_name;
     const char* description;
