@@ -57,6 +57,20 @@ commands_array_get_index(avaliable_cmd_entry_t* entries, const char* string)
     return -1;
 }
 
+
+/*
+ *
+ */
+void* sh_malloc(unsigned int bytes)
+{
+    void* memblock = malloc(bytes);
+    if (!memblock) {
+        perror("Error occured during mem allocation");
+        exit(EXIT_FAILURE);
+    }
+    return memblock;
+}
+
 /*
  *
  */

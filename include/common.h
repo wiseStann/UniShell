@@ -102,6 +102,9 @@ enum SYMBOL_KIND {
 };
 
 
+// custom allocation function
+void* sh_malloc(unsigned int bytes);
+
 //
 void commands_show();
 
