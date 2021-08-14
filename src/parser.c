@@ -52,55 +52,48 @@ command_new(const char* command)
  *
  */
 command_t*
-command_parse_new(const char* command)
+command_parse_new(char* command)
 {
     command_t* struct_command = command_new(command);
     if (!struct_command) return NULL;
 
     int cmd_name_len = strlen(struct_command->name);
-    if (command[cmd_name_len] == 0) return struct_command;
+    command += cmd_name_len;
 
-    char curr, prev = command[cmd_name_len];
-    int arg_idx_start = cmd_name_len, args_idx = 0, quote_is_completed = 1;
+    int args_idx = 0, next_token_idx = 0, quote_is_completed = 1, i = 0;
     argument_t* argument = command_argument_new();
-    for (int i = cmd_name_len; i <= struct_command->length; i++) {
-        curr = command[i];
-        
-        // skip spaces
-        if (curr == SPACE_SYMBOL && prev == SPACE_SYMBOL) continue;
+    char* tmp = malloc(strlen(command));
+    strcpy(tmp, command);
 
-        // pushing parsed argument
-        if ((curr == SPACE_SYMBOL || curr == TERMINAL_SYMBOL) && prev != SPACE_SYMBOL) {
-            if (prev == DOUBLE_QUOTE_SYMBOL) argument->name[i - arg_idx_start - 2] = '\0';
-            else argument->name[i - arg_idx_start + 1] = '\0'; 
-            struct_command->arguments[args_idx++] = argument;
-            arg_idx_start = i;
-            argument = command_argument_new();
+    char* next_token = strtok(command, " ");
+    while (next_token)
+    {
+        next_token_idx++;
+        while (*tmp == SPACE_SYMBOL) tmp++;
+
+        if (char_array_contains(next_token, COMMENT_SYMBOL)) {
+            while (next_token[i] != COMMENT_SYMBOL)
+                argument->name[argument->size++] = next_token[i++];
+        } else if (next_token[0] == DOUBLE_QUOTE_SYMBOL && quote_is_completed) {
+            next_token = strtok(NULL, " ");
+            while (next_token[strlen(next_token) - 1] != DOUBLE_QUOTE_SYMBOL)
+                next_token = strtok(NULL, " ");
+            do {
+                tmp++;
+                argument->name[argument->size++] = *tmp;
+            } while (*(tmp + 1) != DOUBLE_QUOTE_SYMBOL);
+            argument->name[argument->size] = TERMINAL_SYMBOL;
+        } else {
+            tmp += strlen(next_token);
+            strcpy(argument->name, next_token);
+            argument->size = strlen(next_token);
         }
-        // handling commentaries
-        else if (curr == COMMENT_SYMBOL) {
-            if (prev != SPACE_SYMBOL) {
-                argument->name[i - arg_idx_start] = '\0';
-                struct_command->arguments[args_idx++] = argument;
-            }
-            break;
-        }
-        // handling double quotes
-        else if (curr == DOUBLE_QUOTE_SYMBOL) {
-            arg_idx_start = i;
-            if (quote_is_completed) {
-                do {
-                    i++;
-                    argument->name[argument->size++] = command[i];
-                } while (command[i] != DOUBLE_QUOTE_SYMBOL);
-            }
-            quote_is_completed = (quote_is_completed + 1) % 2;
-        }
-        // pushing parsed symbol to argument
-        else {
-            argument->name[argument->size++] = curr;
-        }
-        prev = curr;
+        argument->idx_number = next_token_idx;
+        struct_command->arguments[args_idx++] = argument;
+        argument = command_argument_new();
+
+        if (next_token[i] == COMMENT_SYMBOL) break;
+        next_token = strtok(NULL, " ");
     }
     free(argument);
 
@@ -187,6 +180,8 @@ command_parse_syntax_is_valid(const char* command)
             return FALSE;
         if (!char_array_contains(SPEC_SYMBOLS, curr) &&
             (curr < 65 || curr > 90) && (curr < 97 || curr > 122))
+            return FALSE;
+        if (curr == COMMENT_SYMBOL && !quote_is_completed)
             return FALSE;
         prev = curr;
     }
