@@ -22,12 +22,12 @@ int main(int argc, char** argv)
 
         cmd = command_parse_new(input->buffer);
         if (cmd) {
-            // printf("Command name: %s\n", cmd->name);
-            // printf("Arguments: ");
-            // for (int i = 0; i < cmd->args_num; i++) {
-            //     printf("'%s' ", cmd->arguments[i]->name);
-            // }
-            // printf("\n");
+            printf("Command name: %s\n", cmd->name);
+            printf("Arguments:\n");
+            for (int i = 0; i < cmd->args_num; i++) {
+                printf("Name: '%s', size: %d, index number: %d\n", cmd->arguments[i]->name, cmd->arguments[i]->size, cmd->arguments[i]->idx_number);
+            }
+            printf("\n");
 
             int status = command_handle(cmd);
             if (!status)
