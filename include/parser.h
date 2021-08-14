@@ -6,12 +6,6 @@
 #define COMMAND_ARGUMENT_MAX_LEN 512
 
 
-/* How shell syntax looks like:
- * shell>$ command arg1 arg2 arg3 ... argN
- * shell>$ command "args args args" arg2 ... argN
- */
-
-
 // command argument structure
 typedef struct arg {
     char name[COMMAND_ARGUMENT_MAX_LEN];
@@ -30,7 +24,7 @@ typedef struct cmd {
 
 
 // creates a new command argument
-argument_t* command_argument_new();
+argument_t* command_argument_new(unsigned int);
 
 
 // creates a new command struct based on a given command
