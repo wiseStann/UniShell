@@ -5,6 +5,7 @@
 avaliable_cmd_entry_t AVAILABLE_COMMANDS[COMMANDS_MAX_NUM] = {
     { .cmd_name = "echo", .description = "prints something to console or to the I/O streams" },
     { .cmd_name = "ls", .description = "shows all files and dirs in the current directory" },
+    { .cmd_name = "cat", .description = "prints the data from the stream to the console" },
     { .cmd_name = "pwd", .description = "shows path to the current directory" },
     { .cmd_name = "clear", .description = "clears the screen" },
     { .cmd_name = "exit", .description = "exits this applications" }, 
@@ -13,7 +14,7 @@ avaliable_cmd_entry_t AVAILABLE_COMMANDS[COMMANDS_MAX_NUM] = {
 };
 
 const char SPEC_SYMBOLS[SPEC_SYMBOLS_MAX_NUM] = {
-    '#', ' ', '\"', '\\', '/', '|', '>', '<', '\0',
+    '#', ' ', '\"', '\\', '/', '|', '>', '<', '-', '.', '\0',
 };
 
 /*

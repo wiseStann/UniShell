@@ -4,8 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
+#include <sys/wait.h>
+#include <sys/unistd.h>
 
 #define TRUE 1
 #define FALSE (!TRUE)
@@ -31,6 +32,7 @@ extern avaliable_cmd_entry_t AVAILABLE_COMMANDS[COMMANDS_MAX_NUM];
 typedef enum cmds_aliases {
     ECHO_CMD,
     LS_CMD,
+    CAT_CMD,
     PWD_CMD,
     CLEAR_CMD,
     EXIT_CMD,
@@ -104,6 +106,17 @@ enum SYMBOL_KIND {
      * should be redirected to some input stream and write after its contents.
      */
     GREATER_THAN_SYMBOL = '>',
+
+    /*
+     *
+     */
+    HYPHEN_SYMBOL = '-',
+
+    /*
+     *
+     */
+    DOT_SYMBOL = '.',
+
 
     /*  If TERMINAL_SYMBOL occurs, then the end of the string (C string) is reached. 
      */
