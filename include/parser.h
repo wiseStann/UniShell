@@ -37,18 +37,18 @@ argument_t* command_argument_new();
 command_t* command_new(const char*);
 
 // parses a given command and returns command_t* or NULL 
-command_t* command_parse_new(const char*);
+command_t* command_parse_new(char*);
 
-//
+// handle a given command
 int command_handle(command_t*);
 
 // parses a given command and validates it
 int command_parse_is_valid(const char*);
 
-//
+// checks if the command basename exists in available commands list
 int command_parse_basename_exists(const char*);
 
-//
+// checks if the command syntax is valid
 int command_parse_syntax_is_valid(const char*);
 
 // parses a given command and returns the number of its arguments
