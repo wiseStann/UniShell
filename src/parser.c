@@ -6,10 +6,11 @@
  *
  */
 argument_t*
-command_argument_new()
+command_argument_new(unsigned int argument_index)
 {
     argument_t* argument = (argument_t*)malloc(sizeof(argument_t));
     argument->size = 0;
+    argument->idx_number = argument_index;
     return argument;
 }
 
@@ -41,7 +42,7 @@ command_new(const char* command)
     if (cmd_args_num) {
         struct_command->arguments = (argument_t**)malloc(sizeof(argument_t*));
         for (int i = 0; i < cmd_args_num; i++) {
-            struct_command->arguments[i] = (argument_t*)malloc(cmd_args_num * sizeof(argument_t));
+            struct_command->arguments[i] = (argument_t*)malloc(sizeof(argument_t));
         }
     }
 
@@ -58,12 +59,10 @@ command_parse_new(char* command)
     if (!struct_command) return NULL;
 
     int cmd_name_len = strlen(struct_command->name);
-    command += cmd_name_len;
 
     int args_idx = 0, next_token_idx = 0, quote_is_completed = 1, i = 0;
-    argument_t* argument = command_argument_new();
-    char* tmp = malloc(strlen(command));
-    strcpy(tmp, command);
+    argument_t* argument = command_argument_new(next_token_idx);
+    char* tmp = strdup(command);
 
     char* next_token = strtok(command, " ");
     while (next_token)
@@ -90,7 +89,7 @@ command_parse_new(char* command)
         }
         argument->idx_number = next_token_idx;
         struct_command->arguments[args_idx++] = argument;
-        argument = command_argument_new();
+        argument = command_argument_new(next_token_idx);
 
         if (next_token[i] == COMMENT_SYMBOL) break;
         next_token = strtok(NULL, " ");
@@ -107,26 +106,33 @@ int
 command_handle(command_t* command)
 {
     COMMANDS_ALIASES cmd_alias = (COMMANDS_ALIASES)(command->table_index);
-    switch (cmd_alias) {
-        case ECHO_CMD:
-            printf("Will be released soon.\n");
-            break;
-        case LS_CMD:
-            printf("Will be released soon.\n");
-            break;
-        case PWD_CMD:
-            printf("Will be released soon.\n");
-            break;
-        case CLEAR_CMD:
-            printf("Will be released soon.\n");
-            break;
-        case CMDS_LIST_CMD:
-            commands_show();
-            break;
-        default:
-            return STATUS_FAILURE;
-            break;
+    char** args;
+
+    if (command->args_num - 1) {
+        args = (char**)malloc(++command->args_num * sizeof(char*));
+        for (int i = 0; i < command->args_num - 1; i++)
+            args[i] = (char*)malloc(COMMAND_ARGUMENT_MAX_LEN);
+
+        for (int i = 0; i < command->args_num - 1; i++) {
+            strcpy(args[i], command->arguments[i]->name);
+        }
     }
+
+    int ret;
+    if (fork() == 0) {
+        switch (cmd_alias) {
+            case CMDS_LIST_CMD:
+                commands_show();
+                break;
+            default:
+                if (command->args_num - 1)
+                    return execvp(command->name, args);
+                else 
+                    return execlp(command->name, command->name, (char*)NULL);
+        }
+    }
+    wait(NULL);
+
     return STATUS_SUCCESS;
 }
 
@@ -220,7 +226,7 @@ command_parse_arguments_number(const char* command)
         }
         prev = curr;
     }
-    return args_num - 1;
+    return args_num;
 }
 
 /*
