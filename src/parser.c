@@ -1,53 +1,6 @@
-#include "../include/common.h"
 #include "../include/parser.h"
 
 
-/*
- *
- */
-argument_t*
-command_argument_new(unsigned int argument_index)
-{
-    argument_t* argument = (argument_t*)malloc(sizeof(argument_t));
-    argument->size = 0;
-    argument->idx_number = argument_index;
-    return argument;
-}
-
-/*
- *
- */
-command_t*
-command_new(const char* command)
-{
-    if (!command_parse_is_valid(command)) {
-        return NULL;
-    }
-
-    command_t* struct_command;
-    argument_t* argument;
-    unsigned int cmd_args_num;
-    
-    struct_command = (command_t*)malloc(sizeof(command_t));
-    struct_command->name = (char*)malloc(COMMAND_NAME_MAX_LEN);
-    struct_command->name = command_parse_get_basename(command);
-
-    struct_command->table_index = commands_array_get_index(AVAILABLE_COMMANDS, struct_command->name);
-
-    struct_command->length = strlen(command);
-
-    cmd_args_num = command_parse_arguments_number(command);
-    struct_command->args_num = cmd_args_num;
-
-    if (cmd_args_num) {
-        struct_command->arguments = (argument_t**)malloc(sizeof(argument_t*));
-        for (int i = 0; i < cmd_args_num; i++) {
-            struct_command->arguments[i] = (argument_t*)malloc(sizeof(argument_t));
-        }
-    }
-
-    return struct_command;
-}
 
 /*
  *
@@ -103,54 +56,17 @@ command_parse_new(char* command)
  *
  */
 int
-command_handle(command_t* command)
-{
-    COMMANDS_ALIASES cmd_alias = (COMMANDS_ALIASES)(command->table_index);
-    char** args;
-
-    if (command->args_num - 1) {
-        args = (char**)malloc(++command->args_num * sizeof(char*));
-        for (int i = 0; i < command->args_num - 1; i++)
-            args[i] = (char*)malloc(COMMAND_ARGUMENT_MAX_LEN);
-
-        for (int i = 0; i < command->args_num - 1; i++) {
-            strcpy(args[i], command->arguments[i]->name);
-        }
-    }
-
-    int ret;
-    if (fork() == 0) {
-        switch (cmd_alias) {
-            case CMDS_LIST_CMD:
-                commands_show();
-                break;
-            default:
-                if (command->args_num - 1)
-                    return execvp(command->name, args);
-                else 
-                    return execlp(command->name, command->name, (char*)NULL);
-        }
-    }
-    wait(NULL);
-
-    return STATUS_SUCCESS;
-}
-
-/*
- *
- */
-int
 command_parse_is_valid(const char* command)
 {
     char* basename = command_parse_get_basename(command);
     int ex_factor = command_parse_basename_exists(basename);
     int val_syntax_factor = command_parse_syntax_is_valid(command);
     if (!ex_factor) {
-        printf("! Unknow command '%s'\n", basename);
-        printf("! Commands list is available by typing 'cmdslist'\n");
+        throw_error("! Unknow command '%s'\n", basename);
+        throw_error("! Commands list is available by typing 'cmdslist'\n");
     }
     else if (!val_syntax_factor)
-        printf("! Invalid command syntax\n");
+        throw_error("! Invalid command syntax\n");
     
     free(basename);
     return ex_factor && val_syntax_factor;
@@ -235,27 +151,11 @@ command_parse_arguments_number(const char* command)
 char*
 command_parse_get_basename(const char* command)  
 {
-    char* basename = (char*)malloc(COMMAND_NAME_MAX_LEN);
+    char* basename = (char*)sh_malloc(COMMAND_NAME_MAX_LEN);
     int i;
     for (i = 0; command[i] != ' ' && command[i] != 0; i++) {
         basename[i] = command[i];
     }
     basename[i] = '\0';
     return basename;
-}
-
-/*
- *
- */
-void command_free(command_t* command)
-{
-    if (command) {
-        if (command->args_num) {
-            for (int i = 0; i < command->args_num; i++) 
-                free(command->arguments[i]);
-            free(command->arguments);
-        }
-        free(command->name);
-        free(command);
-    }
 }
