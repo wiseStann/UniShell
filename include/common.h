@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include <sys/wait.h>
 #include <sys/unistd.h>
@@ -17,7 +18,56 @@
 #define COMMANDS_MAX_NUM 16
 #define SPEC_SYMBOLS_MAX_NUM 32
 
+#define DEFAULT_PROMPT_BASENAME "UniShell>$"
 #define ENTER_CODE 10
+
+
+extern char* prompt_basename;
+
+/* shows a given error message to the user
+   it's like a simple printf */
+extern void throw_error(const char* fmt, ...);
+
+
+//////////////////////////////////////////////
+
+#define COMMAND_NAME_MAX_LEN 256
+#define COMMAND_ARGUMENT_MAX_LEN 512
+
+
+// command argument structure
+typedef struct arg {
+    char name[COMMAND_ARGUMENT_MAX_LEN];
+    unsigned int size;
+    unsigned int idx_number;
+} argument_t;
+
+// command structure
+typedef struct cmd {
+    char* name;
+    unsigned int length;
+    argument_t** arguments;
+    unsigned int args_num;
+    int table_index;
+} command_t;
+
+////////////////////////////////////////////////
+
+// creates a new command argument
+argument_t* command_argument_new(unsigned int);
+
+// creates a new command struct based on a given command
+command_t* command_new(const char*);
+
+// frees a command struct
+void command_free(command_t*);
+
+//
+char** command_args_to_string_array(command_t*);
+
+
+//
+extern void usage(command_t*);
 
 
 // available command structure
@@ -36,6 +86,7 @@ typedef enum cmds_aliases {
     PWD_CMD,
     CLEAR_CMD,
     EXIT_CMD,
+    CHANGE_PB_CMD,
     CMDS_LIST_CMD,
 } COMMANDS_ALIASES;
 
@@ -50,6 +101,9 @@ int commands_array_contains(avaliable_cmd_entry_t*, const char*);
 
 // gets the index of a given command in an array
 int commands_array_get_index(avaliable_cmd_entry_t*, const char*);
+
+//
+void string_array_free(char**, unsigned int);
 
 
 // specific symbols which can occur in a command 
@@ -117,6 +171,11 @@ enum SYMBOL_KIND {
      */
     DOT_SYMBOL = '.',
 
+    /*
+     *
+     */
+    DOLLAR_SYMBOL = '$',
+
 
     /*  If TERMINAL_SYMBOL occurs, then the end of the string (C string) is reached. 
      */
@@ -125,7 +184,10 @@ enum SYMBOL_KIND {
 
 
 // custom allocation function
-void* sh_malloc(unsigned int bytes);
+void* sh_malloc(unsigned int);
+
+// changes the prompt basename
+void set_prompt_basename(const char*);
 
 // shows available commands
 void commands_show();
