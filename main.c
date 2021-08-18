@@ -1,21 +1,23 @@
 #include "include/common.h"
 #include "include/parser.h"
 #include "include/input_buffer.h"
+#include "include/sh_history.h"
 
 
 int main(int argc, char** argv)
 {
     input_t* input = NULL;
     command_t* cmd = NULL;
-    char prev, curr;
+    char curr;
+
+    set_prompt_basename(DEFAULT_PROMPT_BASENAME);
 
     while (TRUE) {
         input = input_new();
-        printf("shell>$ ");
+        printf("%s", prompt_basename);
         while ((curr = getchar()) != ENTER_CODE) {
             if (curr != BACK_SLASH_SYMBOL)
                 input_buffer_push(input, curr);
-            prev = curr;
         }
         input_buffer_push(input, '\0');
         if (!strcmp(input->buffer, "exit")) break;
