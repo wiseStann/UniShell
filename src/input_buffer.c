@@ -8,10 +8,10 @@
 input_t*
 input_new()
 {
-    input_t* input = (input_t*)malloc(sizeof(input_t));
+    input_t* input = (input_t*)sh_malloc(sizeof(input_t));
     input->capacity = INPUT_BUFFER_CAP_INIT;
     input->size = 0;
-    input->buffer = (char*)malloc(input->capacity);
+    input->buffer = (char*)sh_malloc(input->capacity);
 
     return input;
 }
