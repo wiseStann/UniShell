@@ -6,18 +6,31 @@
 #include "common.h"
 
 
-typedef struct History {
-    struct History* next;
-    struct History* prev;
+//
+typedef struct HistoryEntry {
+    struct HistoryEntry* next;
+    struct HistoryEntry* prev;
     command_t* command;
+} his_entry_t;
+
+//
+typedef struct History {
+    his_entry_t* head;
+    unsigned int size;
 } history_t;
 
+
+//
+his_entry_t* shell_history_entry_new(command_t*);
 
 //
 history_t* shell_history_new();
 
 //
 void shell_history_prepend(history_t*, command_t*);
+
+//
+void shell_history_free(history_t*);
 
 
 #endif // !HISTORY_SHELL_H
