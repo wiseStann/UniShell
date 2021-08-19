@@ -1,8 +1,14 @@
 #include "../include/common.h"
 #include "../include/parser.h"
+#include "../include/sh_history.h"
+
 
 char* prompt_basename = NULL;
 
+
+/*
+ *
+ */
 void
 throw_error(const char* fmt, ...)
 {
