@@ -8,6 +8,7 @@ int main(int argc, char** argv)
 {
     input_t* input = NULL;
     command_t* cmd = NULL;
+    history_t* history = shell_history_new();
     char curr;
 
     set_prompt_basename(DEFAULT_PROMPT_BASENAME);
@@ -27,11 +28,13 @@ int main(int argc, char** argv)
             int status = command_handle(cmd);
             if (status == -1)
                 printf("Invalid set of arguments was given to the command '%s'\n", cmd->name);
+            shell_history_prepend(history, cmd);
         }
 
         input_free(input);
     }
     command_free(cmd);
+    shell_history_free(history);
 
     return 0;
 }
