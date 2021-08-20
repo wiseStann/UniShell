@@ -41,6 +41,49 @@ throw_error(const char* fmt, ...)
     va_end(args);
 }
 
+/*
+ *
+ */
+char getch() {
+	char buf = 0;
+	struct termios old = {0};
+	if (tcgetattr(0, &old) < 0)
+		perror("tcsetattr()");
+    old.c_lflag &= ~ICANON;
+	old.c_lflag &= ~ECHO;
+	old.c_cc[VMIN] = 1;
+	old.c_cc[VTIME] = 0;
+	if (tcsetattr(0, TCSANOW, &old) < 0)
+		perror("tcsetattr ICANON");
+	if (read(0, &buf, 1) < 0)
+		perror ("read()");
+	old.c_lflag |= ICANON;
+	old.c_lflag |= ECHO;
+	if (tcsetattr(0, TCSADRAIN, &old) < 0)
+		perror ("tcsetattr ~ICANON");
+	return buf;
+}
+
+/*
+ *
+ */
+int get_key_pressed()
+{
+    write(1, prompt_basename, strlen(prompt_basename));
+    int getch_out;
+    getch_out = getch();
+    if (getch_out == ESCAPE_CODE) {
+        getch();
+        switch(getch())
+        {
+            case A_KEY:
+                return ARROW_UP;
+            case B_KEY:
+                return ARROW_DOWN;
+        }
+    }
+    return getch_out;
+}
 
 
 /*
@@ -73,9 +116,12 @@ command_new(const char* command)
     struct_command->name = (char*)sh_malloc(COMMAND_NAME_MAX_LEN);
     struct_command->name = command_parse_get_basename(command);
 
-    struct_command->table_index = commands_array_get_index(AVAILABLE_COMMANDS, struct_command->name);
-
     struct_command->length = strlen(command);
+
+    struct_command->content = (char*)sh_malloc(struct_command->length);
+    strcpy(struct_command->content, command);
+
+    struct_command->table_index = commands_array_get_index(AVAILABLE_COMMANDS, struct_command->name);
 
     cmd_args_num = command_parse_arguments_number(command);
     struct_command->args_num = cmd_args_num;
@@ -103,6 +149,7 @@ command_free(command_t* command)
             free(command->arguments);
         }
         free(command->name);
+        free(command->content);
         free(command);
     }
 }
