@@ -16,6 +16,7 @@ typedef struct HistoryEntry {
 //
 typedef struct History {
     his_entry_t* head;
+    his_entry_t* curr_watching;
     unsigned int size;
 } history_t;
 
@@ -30,7 +31,11 @@ history_t* shell_history_new();
 void shell_history_prepend(history_t*, command_t*);
 
 //
+void shell_history_show(history_t*);
+
+//
 void shell_history_free(history_t*);
+
 
 
 #endif // !HISTORY_SHELL_H
