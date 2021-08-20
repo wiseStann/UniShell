@@ -5,12 +5,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <termios.h>
+#include <fcntl.h>
 
 #include <sys/wait.h>
 #include <sys/unistd.h>
 
 #define TRUE 1
-#define FALSE (!TRUE)
+#define FALSE 0
 
 #define STATUS_SUCCESS TRUE
 #define STATUS_FAILURE FALSE
@@ -19,7 +21,9 @@
 #define SPEC_SYMBOLS_MAX_NUM 32
 
 #define DEFAULT_PROMPT_BASENAME "UniShell>$"
+
 #define ENTER_CODE 10
+#define ESCAPE_CODE 27
 
 
 extern char* prompt_basename;
@@ -27,6 +31,9 @@ extern char* prompt_basename;
 /* shows a given error message to the user
    it's like a simple printf */
 extern void throw_error(const char* fmt, ...);
+
+//
+extern char getch();
 
 
 //////////////////////////////////////////////
@@ -45,6 +52,7 @@ typedef struct arg {
 // command structure
 typedef struct cmd {
     char* name;
+    char* content;
     unsigned int length;
     argument_t** arguments;
     unsigned int args_num;
@@ -52,6 +60,7 @@ typedef struct cmd {
 } command_t;
 
 ////////////////////////////////////////////////
+
 
 // creates a new command argument
 argument_t* command_argument_new(unsigned int);
@@ -181,6 +190,24 @@ enum SYMBOL_KIND {
      */
     TERMINAL_SYMBOL = '\0',
 };
+
+
+// some keys codes for keyboard usage detection
+typedef enum keys_codes {
+    A_KEY = 65,
+    B_KEY = 66,
+    C_KEY = 67,
+    D_KEY = 68,
+    ARROW_UP = 128,
+    ARROW_DOWN = 129,
+    ARROW_RIGHT = 130,
+    ARROW_LEFT = 131,
+    ANOTHER_KEY = 132,
+} KEYS_CODES;
+
+
+//
+extern int get_key_pressed();
 
 
 // custom allocation function
