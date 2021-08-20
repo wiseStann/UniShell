@@ -22,6 +22,8 @@ shell_history_new()
 {
     history_t* history = (history_t*)sh_malloc(sizeof(history_t));
     history->head = NULL;
+    history->curr_watching = shell_history_entry_new(NULL);
+    history->curr_watching->next = history->head;
     history->size = 0;
 
     return history;
@@ -41,7 +43,23 @@ shell_history_prepend(history_t* history, command_t* command)
         history->head->prev = entry;
         history->head = entry;
     }
+    history->curr_watching->next = history->head;
     history->size++;
+}
+
+/*
+ *
+ */
+void
+shell_history_show(history_t* his)
+{
+    his_entry_t* curr = his->head;
+    printf("Current history:\n");
+    while (curr) {
+        printf("> %s;\n", curr->command->content);
+        curr = curr->next;
+    }
+    printf("\n");
 }
 
 /*
