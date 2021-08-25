@@ -1,3 +1,4 @@
+#include "../include/common.h"
 #include "../include/sh_history.h"
 
 
@@ -23,7 +24,6 @@ shell_history_new()
     history_t* history = (history_t*)sh_malloc(sizeof(history_t));
     history->head = NULL;
     history->curr_watching = shell_history_entry_new(NULL);
-    history->curr_watching->next = history->head;
     history->size = 0;
 
     return history;
