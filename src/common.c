@@ -69,7 +69,6 @@ char getch() {
  */
 int get_key_pressed()
 {
-    write(1, prompt_basename, strlen(prompt_basename));
     int getch_out;
     getch_out = getch();
     if (getch_out == ESCAPE_CODE) {
@@ -80,110 +79,13 @@ int get_key_pressed()
                 return ARROW_UP;
             case B_KEY:
                 return ARROW_DOWN;
+            // case C_KEY:
+            //
+            case D_KEY:
+                return BACKSPACE;
         }
     }
     return getch_out;
-}
-
-
-/*
- *
- */
-argument_t*
-command_argument_new(unsigned int argument_index)
-{
-    argument_t* argument = (argument_t*)sh_malloc(sizeof(argument_t));
-    argument->size = 0;
-    argument->idx_number = argument_index;
-    return argument;
-}
-
-/*
- *
- */
-command_t*
-command_new(const char* command)
-{
-    if (!command_parse_is_valid(command)) {
-        return NULL;
-    }
-
-    command_t* struct_command;
-    argument_t* argument;
-    unsigned int cmd_args_num;
-    
-    struct_command = (command_t*)sh_malloc(sizeof(command_t));
-    struct_command->name = (char*)sh_malloc(COMMAND_NAME_MAX_LEN);
-    struct_command->name = command_parse_get_basename(command);
-
-    struct_command->length = strlen(command);
-
-    struct_command->content = (char*)sh_malloc(struct_command->length);
-    strcpy(struct_command->content, command);
-
-    struct_command->table_index = commands_array_get_index(AVAILABLE_COMMANDS, struct_command->name);
-
-    cmd_args_num = command_parse_arguments_number(command);
-    struct_command->args_num = cmd_args_num;
-
-    if (cmd_args_num) {
-        struct_command->arguments = (argument_t**)sh_malloc(sizeof(argument_t*));
-        for (int i = 0; i < cmd_args_num; i++) {
-            struct_command->arguments[i] = (argument_t*)sh_malloc(sizeof(argument_t));
-        }
-    }
-
-    return struct_command;
-}
-
-/*
- *
- */
-void
-command_free(command_t* command)
-{
-    if (command) {
-        if (command->args_num) {
-            for (int i = 0; i < command->args_num; i++) 
-                free(command->arguments[i]);
-            free(command->arguments);
-        }
-        free(command->name);
-        free(command->content);
-        free(command);
-    }
-}
-
-/*
- *
- */
-char**
-command_args_to_string_array(command_t* command)
-{
-    char** args;
-
-    if (command->args_num - 1) {
-        args = (char**)sh_malloc(++command->args_num * sizeof(char*));
-        for (int i = 0; i < command->args_num - 1; i++)
-            args[i] = (char*)sh_malloc(COMMAND_ARGUMENT_MAX_LEN);
-
-        for (int i = 0; i < command->args_num - 1; i++) {
-            strcpy(args[i], command->arguments[i]->name);
-        }
-    }
-
-    return args;
-}
-
-
-
-/*
- *
- */
-void
-usage(command_t* command)
-{
-
 }
 
 
@@ -215,6 +117,16 @@ char_array_contains(const char* array, char symbol)
             return TRUE;
     }
     return FALSE;
+}
+
+/*
+ *
+ */
+void char_array_prepend(char* s, const char* t)
+{
+    size_t len = strlen(t);
+    memmove(s + len, s, strlen(s) + 1);
+    memcpy(s, t, len);
 }
 
 /*
@@ -290,6 +202,15 @@ set_prompt_basename(const char* basename)
     }
     else
         throw_error("Prompt basename must be at least one character long, skipped\n");
+}
+
+/*
+ *
+ */
+void
+write_prompt_basename()
+{
+    write(1, prompt_basename, strlen(prompt_basename));
 }
 
 /*
