@@ -1,26 +1,7 @@
 #ifndef SHELL_PARSER_H
 #define SHELL_PARSER_H
 
-#include "common.h"
-
-
-/* STRUCTURES
-
-typedef struct arg {
-    char name[COMMAND_ARGUMENT_MAX_LEN];
-    unsigned int size;
-    unsigned int idx_number;
-} argument_t;
-
-typedef struct cmd {
-    char* name;
-    unsigned int length;
-    argument_t** arguments;
-    unsigned int args_num;
-    int table_index;
-} command_t;
-
-*/
+#include "command.h"
 
 
 // parses a given command and returns command_t* or NULL 
