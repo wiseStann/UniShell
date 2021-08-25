@@ -3,7 +3,7 @@
 #ifndef HISTORY_SHELL_H
 #define HISTORY_SHELL_H
 
-#include "common.h"
+#include "command.h"
 
 
 //
@@ -17,7 +17,7 @@ typedef struct HistoryEntry {
 typedef struct History {
     his_entry_t* head;
     his_entry_t* curr_watching;
-    unsigned int size;
+    unsigned size;
 } history_t;
 
 
