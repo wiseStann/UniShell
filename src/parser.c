@@ -1,5 +1,5 @@
+#include "../include/common.h"
 #include "../include/parser.h"
-
 
 
 /*
@@ -62,12 +62,12 @@ command_parse_is_valid(const char* command)
     int ex_factor = command_parse_basename_exists(basename);
     int val_syntax_factor = command_parse_syntax_is_valid(command);
     if (!ex_factor) {
-        throw_error("! Unknow command '%s'\n", basename);
+        throw_error("! Unknown command '%s'\n", basename);
         throw_error("! Commands list is available by typing 'cmdslist'\n");
     }
-    else if (!val_syntax_factor)
+    else if (!val_syntax_factor) {
         throw_error("! Invalid command syntax\n");
-    
+    }
     free(basename);
     return ex_factor && val_syntax_factor;
 }
