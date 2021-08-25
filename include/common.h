@@ -20,10 +20,9 @@
 #define COMMANDS_MAX_NUM 16
 #define SPEC_SYMBOLS_MAX_NUM 32
 
-#define DEFAULT_PROMPT_BASENAME "UniShell>$"
+#define ESC_SEQUENCE_MAX_LEN 16
 
-#define ENTER_CODE 10
-#define ESCAPE_CODE 27
+#define DEFAULT_PROMPT_BASENAME "UniShell$>"
 
 
 extern char* prompt_basename;
@@ -35,48 +34,8 @@ extern void throw_error(const char* fmt, ...);
 //
 extern char getch();
 
-
-//////////////////////////////////////////////
-
-#define COMMAND_NAME_MAX_LEN 256
-#define COMMAND_ARGUMENT_MAX_LEN 512
-
-
-// command argument structure
-typedef struct arg {
-    char name[COMMAND_ARGUMENT_MAX_LEN];
-    unsigned int size;
-    unsigned int idx_number;
-} argument_t;
-
-// command structure
-typedef struct cmd {
-    char* name;
-    char* content;
-    unsigned int length;
-    argument_t** arguments;
-    unsigned int args_num;
-    int table_index;
-} command_t;
-
-////////////////////////////////////////////////
-
-
-// creates a new command argument
-argument_t* command_argument_new(unsigned int);
-
-// creates a new command struct based on a given command
-command_t* command_new(const char*);
-
-// frees a command struct
-void command_free(command_t*);
-
 //
-char** command_args_to_string_array(command_t*);
-
-
-//
-extern void usage(command_t*);
+extern int get_key_pressed();
 
 
 // available command structure
@@ -86,6 +45,29 @@ typedef struct avaliable_commands_entry {
 } avaliable_cmd_entry_t;
 
 extern avaliable_cmd_entry_t AVAILABLE_COMMANDS[COMMANDS_MAX_NUM];
+
+extern const char SPEC_SYMBOLS[SPEC_SYMBOLS_MAX_NUM];
+extern const unsigned int SPEC_SYMBOLS_NUM;
+
+
+// checks if an array contains a given character
+int char_array_contains(const char*, char);
+
+//
+void char_array_prepend(char*, const char*);
+
+// checks if an array of commands contains a given command
+int commands_array_contains(avaliable_cmd_entry_t*, const char*);
+
+// gets the index of a given command in an array
+int commands_array_get_index(avaliable_cmd_entry_t*, const char*);
+
+//
+void string_array_free(char**, unsigned int);
+
+
+///////////////////////////////////////////////////////////////////////////////////
+
 
 // commands aliases
 typedef enum cmds_aliases {
@@ -98,21 +80,6 @@ typedef enum cmds_aliases {
     CHANGE_PB_CMD,
     CMDS_LIST_CMD,
 } COMMANDS_ALIASES;
-
-extern const char SPEC_SYMBOLS[SPEC_SYMBOLS_MAX_NUM];
-extern const unsigned int SPEC_SYMBOLS_NUM;
-
-// checks if an array contains a given character
-int char_array_contains(const char*, char);
-
-// checks if an array of commands contains a given command
-int commands_array_contains(avaliable_cmd_entry_t*, const char*);
-
-// gets the index of a given command in an array
-int commands_array_get_index(avaliable_cmd_entry_t*, const char*);
-
-//
-void string_array_free(char**, unsigned int);
 
 
 // specific symbols which can occur in a command 
@@ -192,22 +159,33 @@ enum SYMBOL_KIND {
 };
 
 
-// some keys codes for keyboard usage detection
+// some keys ascii codes for keyboard usage detection
+// these keys can either be independent or be part of another keys combination
 typedef enum keys_codes {
+    BS_KEY = 8,
+    // BS_KEY2 = 127,
+    ENTER_CODE = 10,
+    ESCAPE_CODE = 27,
     A_KEY = 65,
     B_KEY = 66,
     C_KEY = 67,
     D_KEY = 68,
+} KEYS_CODES;
+
+
+// special keys codes
+// some of these keys actually don't have ascii code, but some are just aliases for ascii entities
+typedef enum spec_keys_codes {
     ARROW_UP = 128,
     ARROW_DOWN = 129,
     ARROW_RIGHT = 130,
     ARROW_LEFT = 131,
-    ANOTHER_KEY = 132,
-} KEYS_CODES;
+    BACKSPACE = 132,
+    ANOTHER_KEY = 133,
+} SPEC_KEYS_CODES;
 
 
-//
-extern int get_key_pressed();
+//////////////////////////////////////////////////////////////////////////////////////////
 
 
 // custom allocation function
@@ -215,6 +193,9 @@ void* sh_malloc(unsigned int);
 
 // changes the prompt basename
 void set_prompt_basename(const char*);
+
+//
+void write_prompt_basename();
 
 // shows available commands
 void commands_show();
