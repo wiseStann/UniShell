@@ -24,14 +24,11 @@ command_handle(command_t* command)
                     usage(command);
                 break;
             default:
-                if (command->args_num - 1)
-                    return execvp(command->name, args);
-                else 
-                    return execlp(command->name, command->name, (char*)NULL);
+                return execvp(command->name, args);
         }
     }
     wait(NULL);
     string_array_free(args, command->args_num);
 
-    return STATUS_SUCCESS;
+    return STATUS_SUCCESS; 
 }
