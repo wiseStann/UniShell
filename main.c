@@ -3,6 +3,29 @@
 #include "include/command.h"
 #include "include/parser.h"
 #include "include/sh_history.h"
+#include "include/utils.h"
+
+
+
+
+
+/*
+        FIX BACKWARD HIST LISTING
+        SAVING SESSION HISTORY TO THE FILE
+        LOADING HISTORY FROM THE FILE BY A GIVEN ID
+        BACKSPACE DETECTING, DELETING SYMBOLS
+        LEFT AND RIGHT ARROWS SUPPORT
+*/
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -10,7 +33,7 @@ int main(int argc, char** argv)
 {
     input_t* input = NULL;
     command_t* cmd = NULL;
-    history_t* history = shell_history_new();
+    history = shell_history_new();
     his_entry_t* next_entry;
     int should_free_prompt_base = 0, cursor_pos_in_command = 0, non_canon_curr;
     unsigned previous_watched_command_len;
@@ -31,11 +54,9 @@ int main(int argc, char** argv)
             switch (non_canon_curr)
             {
                 case ARROW_UP:
-                    if (history->curr_watching->next) {
+                    if (history->curr_watching) {
                         previous_watched_command_len = input->size;
-                        printf("\nCommand length: %d\n", previous_watched_command_len);
                         
-                        history->curr_watching = history->curr_watching->next;
                         char tmp[history->curr_watching->command->length + ESC_SEQUENCE_MAX_LEN];
                         strcpy(tmp, history->curr_watching->command->content);
 
@@ -45,9 +66,9 @@ int main(int argc, char** argv)
                         }
                         write(1, tmp, history->curr_watching->command->length + strlen(esc_seq));
                         input_buffer_pop_last_n(input, previous_watched_command_len);
-                        printf("\nPUSHING TO BUFFER STRING: %s\n", history->curr_watching->command->content);
+                        // printf("\nPUSHING TO BUFFER STRING: %s\n", history->curr_watching->command->content);
                         input_buffer_push_string(input, history->curr_watching->command->content, history->curr_watching->command->length);
-                        printf("\nBUFFER NOW %s\n", input->buffer);
+                        // printf("\nBUFFER NOW %s\n", input->buffer);
 
                         if (history->curr_watching->command->length < previous_watched_command_len) {
                             for (int i = history->curr_watching->command->length; i < previous_watched_command_len; i++) {
@@ -57,14 +78,13 @@ int main(int argc, char** argv)
                             sprintf(esc_seq, "\033[%dD", previous_watched_command_len - history->curr_watching->command->length);
                             write(1, esc_seq, strlen(esc_seq));
                         }
+                        history->curr_watching = history->curr_watching->next;
                     }
                     break;
                 case ARROW_DOWN:
-                    if (history->curr_watching->prev) {
+                    if (history->curr_watching) {
                         previous_watched_command_len = input->size;
-                        printf("\nCommand length: %d\n", previous_watched_command_len);
 
-                        history->curr_watching = history->curr_watching->prev;
                         char tmp[history->curr_watching->command->length + ESC_SEQUENCE_MAX_LEN];
                         strcpy(tmp, history->curr_watching->command->content);
 
@@ -74,9 +94,9 @@ int main(int argc, char** argv)
                         }
                         write(1, tmp, history->curr_watching->command->length + strlen(esc_seq));
                         input_buffer_pop_last_n(input, previous_watched_command_len);
-                        printf("PUSHING TO BUFFER STRING: %s\n", history->curr_watching->command->content);
+                        // printf("PUSHING TO BUFFER STRING: %s\n", history->curr_watching->command->content);
                         input_buffer_push_string(input, history->curr_watching->command->content, history->curr_watching->command->length);
-                        printf("BUFFER NOW %s\n", input->buffer);
+                        // printf("BUFFER NOW %s\n", input->buffer);
 
                         if (history->curr_watching->command->length < previous_watched_command_len) {
                             for (int i = history->curr_watching->command->length; i < previous_watched_command_len; i++) {
@@ -86,6 +106,8 @@ int main(int argc, char** argv)
                             sprintf(esc_seq, "\033[%dD", previous_watched_command_len - history->curr_watching->command->length);
                             write(1, esc_seq, strlen(esc_seq));
                         }
+                        if (history->curr_watching->prev)
+                            history->curr_watching = history->curr_watching->prev;
                     }
                     break;
                 case BACKSPACE:
@@ -106,7 +128,7 @@ int main(int argc, char** argv)
         putchar(non_canon_curr);
         input_buffer_push(input, '\0');
 
-        // check if hte prompt basename has been changed. If so, we should free memory that
+        // check if the prompt basename has been changed. If so, we should free memory that
         // has been allocated for a new basename to avoid memory leaks
         if (strcmp(prompt_basename, DEFAULT_PROMPT_BASENAME)) should_free_prompt_base = 1;
         if (!strcmp(input->buffer, "exit")) break;
