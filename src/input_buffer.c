@@ -92,7 +92,7 @@ void
 input_buffer_reallocate(input_t* input, unsigned int bytes)
 {
     input->buffer = realloc((void*)input->buffer, bytes);
-    input->capacity = bytes;   
+    input->capacity = bytes;
 }
 
 /*
