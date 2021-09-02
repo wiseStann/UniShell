@@ -1,6 +1,7 @@
 #include "../include/common.h"
+#include "../include/utils.h"
 #include "../include/pipeline.h"
-
+#include "../include/sh_history.h"
 
 /*
  *
@@ -22,6 +23,9 @@ command_handle(command_t* command)
                     set_prompt_basename(command->arguments[1]->name);
                 else
                     usage(command);
+                break;
+            case HISTSHOW_CMD:
+                shell_history_show(history);
                 break;
             default:
                 return execvp(command->name, args);
