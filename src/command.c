@@ -1,4 +1,5 @@
 #include "../include/common.h"
+#include "../include/utils.h"
 #include "../include/command.h"
 #include "../include/parser.h"
 
