@@ -9,4 +9,5 @@
 * multiprocessing;
 * standard streams redirection;
 * Unix-like systems commands;
+* shell history;
 * many many more.
