@@ -11,6 +11,9 @@
 #include <sys/wait.h>
 #include <sys/unistd.h>
 
+#include "sh_history.h"
+
+
 #define TRUE 1
 #define FALSE 0
 
@@ -26,16 +29,11 @@
 
 
 extern char* prompt_basename;
+extern history_t* history;
 
 /* shows a given error message to the user
    it's like a simple printf */
 extern void throw_error(const char* fmt, ...);
-
-//
-extern char getch();
-
-//
-extern int get_key_pressed();
 
 
 // available command structure
@@ -48,22 +46,6 @@ extern avaliable_cmd_entry_t AVAILABLE_COMMANDS[COMMANDS_MAX_NUM];
 
 extern const char SPEC_SYMBOLS[SPEC_SYMBOLS_MAX_NUM];
 extern const unsigned int SPEC_SYMBOLS_NUM;
-
-
-// checks if an array contains a given character
-int char_array_contains(const char*, char);
-
-//
-void char_array_prepend(char*, const char*);
-
-// checks if an array of commands contains a given command
-int commands_array_contains(avaliable_cmd_entry_t*, const char*);
-
-// gets the index of a given command in an array
-int commands_array_get_index(avaliable_cmd_entry_t*, const char*);
-
-//
-void string_array_free(char**, unsigned int);
 
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -79,6 +61,7 @@ typedef enum cmds_aliases {
     EXIT_CMD,
     CHANGE_PB_CMD,
     CMDS_LIST_CMD,
+    HISTSHOW_CMD,
 } COMMANDS_ALIASES;
 
 
