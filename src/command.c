@@ -21,9 +21,7 @@ command_argument_new(unsigned int argument_index)
 command_t*
 command_new(const char* command)
 {
-    if (!command_parse_is_valid(command)) {
-        return NULL;
-    }
+    command_parse_is_valid(command);
 
     command_t* struct_command;
     argument_t* argument;
