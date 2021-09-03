@@ -70,7 +70,7 @@ void input_buffer_pop(input_t* input)
         memmove (
             &(input->buffer[input->size - 1]),
             &(input->buffer[input->size]),
-            sizeof(char*)
+            sizeof(char)
         );
         input->size--;
     }
@@ -81,6 +81,7 @@ void input_buffer_pop(input_t* input)
  */
 void input_buffer_pop_last_n(input_t* input, unsigned bytes)
 {
+    // TODO:: with one memmove
     for (int i = 0; i < bytes; i++)
         input_buffer_pop(input);
 }
