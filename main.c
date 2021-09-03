@@ -10,15 +10,10 @@
 
 
 /*
-        FIX BACKWARD HIST LISTING
-        LEFT AND RIGHT ARROWS SUPPORT
         SAVING SESSION HISTORY TO THE FILE
         LOADING HISTORY FROM THE FILE BY A GIVEN ID
         BACKSPACE DETECTING, DELETING SYMBOLS
 */
-
-
-
 
 
 
@@ -71,7 +66,8 @@ int main(int argc, char** argv)
                             write(1, tmp, history->curr_watching->command->length + strlen(esc_seq));
                         else
                             write(1, tmp, history->curr_watching->command->length);
-                            
+                        cursor_pos_in_command += history->curr_watching->command->length;
+
                         input_buffer_pop_last_n(input, previous_watched_command_len);
                         input_buffer_push_string(input, history->curr_watching->command->content, history->curr_watching->command->length);
 
@@ -80,7 +76,6 @@ int main(int argc, char** argv)
                                 char space = SPACE_SYMBOL;
                                 write(1, &space, 1);
                             }
-
                             sprintf(esc_seq, "\033[%dD", previous_watched_command_len - history->curr_watching->command->length);
                             write(1, esc_seq, strlen(esc_seq));
                         }
@@ -116,6 +111,19 @@ int main(int argc, char** argv)
                             write(1, "\033[1D \033[1D", strlen("\033[1D \033[1D"));
                         }
                         input_buffer_pop_last_n(input, previous_watched_command_len);
+                        cursor_pos_in_command = 0;
+                    }
+                    break;
+                case ARROW_LEFT:
+                    if (cursor_pos_in_command > 0) {
+                        write(1, "\033[1D", strlen("\033[1D"));
+                        cursor_pos_in_command--;
+                    }
+                    break;
+                case ARROW_RIGHT:
+                    if (cursor_pos_in_command < input->size) {
+                        write(1, "\033[1C", strlen("\033[1C"));
+                        cursor_pos_in_command++;
                     }
                     break;
                 case BACKSPACE:
@@ -123,14 +131,28 @@ int main(int argc, char** argv)
                         write(1, "\033[1D \033[1D", strlen("\033[1D \033[1D"));
                         input_buffer_pop(input);
                     }
+                    cursor_pos_in_command--;
                     break;
                 default:
-                    write(1, &non_canon_curr, 1);
-                    input_buffer_push(input, non_canon_curr);
-                    cursor_pos_in_command++;
+                    if (cursor_pos_in_command < input->size) {
+                        write(1, &non_canon_curr, 1);
+                        for (int i = cursor_pos_in_command; i < input->size; i++) {
+                            write(1, &input->buffer[i], 1);
+                        }
+                        sprintf(esc_seq, "\033[%dD", input->size - cursor_pos_in_command);
+                        write(1, esc_seq, strlen(esc_seq));
+
+                        input_buffer_push_at(input, non_canon_curr, cursor_pos_in_command);
+                        cursor_pos_in_command++;
+                    } else {
+                        write(1, &non_canon_curr, 1);
+                        input_buffer_push(input, non_canon_curr);
+                        cursor_pos_in_command++;
+                    }
                     break;
             }
         }
+        cursor_pos_in_command = 0;
         if (!input->size) { printf("\n"); continue; }
 
         putchar(non_canon_curr);
@@ -144,12 +166,9 @@ int main(int argc, char** argv)
         cmd = command_parse_new(input->buffer);
         if (cmd) {
             int status = command_handle(cmd);
-            if (status == -1)
-                printf("Invalid set of arguments was given to the command '%s'\n", cmd->name);
-            shell_history_prepend(history, cmd);
-            // shell_history_show(history);
         }
 
+        shell_history_prepend(history, cmd);
         input_free(input);
     }
     command_free(cmd);
