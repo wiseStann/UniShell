@@ -106,10 +106,12 @@ int get_key_pressed()
                 return ARROW_UP;
             case B_KEY:
                 return ARROW_DOWN;
-            // case C_KEY:
-            //
+            case C_KEY:
+                return ARROW_RIGHT;
             case D_KEY:
-                return BACKSPACE;
+                return ARROW_LEFT;
+            // case D_KEY:
+                // return BACKSPACE;
         }
     }
     return getch_out;
