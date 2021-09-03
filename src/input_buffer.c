@@ -40,11 +40,10 @@ void input_buffer_push_at(input_t* input, char ch, unsigned int pos)
         if (input->size >= input->capacity)
             input_buffer_reallocate(input, input->capacity * INPUT_BUFFER_CAP_EXP_VAL);
         
-        size_t mem_block = (input->size - pos) * sizeof(char*);
         memmove(
             &(input->buffer[pos + 1]),
             &(input->buffer[pos]),
-            mem_block
+            input->size - pos
         );
 
         input->buffer[pos] = ch;
