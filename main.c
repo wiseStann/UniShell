@@ -11,10 +11,10 @@
 
 /*
         FIX BACKWARD HIST LISTING
+        LEFT AND RIGHT ARROWS SUPPORT
         SAVING SESSION HISTORY TO THE FILE
         LOADING HISTORY FROM THE FILE BY A GIVEN ID
         BACKSPACE DETECTING, DELETING SYMBOLS
-        LEFT AND RIGHT ARROWS SUPPORT
 */
 
 
@@ -31,10 +31,13 @@
 
 int main(int argc, char** argv)
 {
+    // session history initialization
+    history = shell_history_new();
+
     input_t* input = NULL;
     command_t* cmd = NULL;
-    history = shell_history_new();
-    his_entry_t* next_entry;
+    his_entry_t* entry_to_retrieve = NULL;
+
     int should_free_prompt_base = 0, cursor_pos_in_command = 0, non_canon_curr;
     unsigned previous_watched_command_len;
     char* esc_seq = (char*)sh_malloc(ESC_SEQUENCE_MAX_LEN);
@@ -46,45 +49,48 @@ int main(int argc, char** argv)
         input = input_new();
         write_prompt_basename();
 
-        /*  If arrow up or arrow down were pressed, then some manipulations with
-         * shell history should be made and the history info should be shown to a user.
-         */
         while ((non_canon_curr = get_key_pressed()) != ENTER_CODE)
         {
             switch (non_canon_curr)
             {
                 case ARROW_UP:
+                    if (!history->curr_watching) history->curr_watching = history->head;
+                    else if (history->curr_watching->next) history->curr_watching = history->curr_watching->next;
+                    
                     if (history->curr_watching) {
-                        previous_watched_command_len = input->size;
-                        
                         char tmp[history->curr_watching->command->length + ESC_SEQUENCE_MAX_LEN];
                         strcpy(tmp, history->curr_watching->command->content);
-
+                        previous_watched_command_len = input->size;
+                        
                         if (previous_watched_command_len > 0) {
                             sprintf(esc_seq, "\033[%dD", previous_watched_command_len);
                             char_array_prepend(tmp, esc_seq);
                         }
-                        write(1, tmp, history->curr_watching->command->length + strlen(esc_seq));
+
+                        if (previous_watched_command_len > 0)
+                            write(1, tmp, history->curr_watching->command->length + strlen(esc_seq));
+                        else
+                            write(1, tmp, history->curr_watching->command->length);
+                            
                         input_buffer_pop_last_n(input, previous_watched_command_len);
-                        // printf("\nPUSHING TO BUFFER STRING: %s\n", history->curr_watching->command->content);
                         input_buffer_push_string(input, history->curr_watching->command->content, history->curr_watching->command->length);
-                        // printf("\nBUFFER NOW %s\n", input->buffer);
 
                         if (history->curr_watching->command->length < previous_watched_command_len) {
                             for (int i = history->curr_watching->command->length; i < previous_watched_command_len; i++) {
                                 char space = SPACE_SYMBOL;
                                 write(1, &space, 1);
                             }
+
                             sprintf(esc_seq, "\033[%dD", previous_watched_command_len - history->curr_watching->command->length);
                             write(1, esc_seq, strlen(esc_seq));
                         }
-                        history->curr_watching = history->curr_watching->next;
                     }
                     break;
                 case ARROW_DOWN:
-                    if (history->curr_watching) {
-                        previous_watched_command_len = input->size;
+                    if (history->curr_watching) history->curr_watching = history->curr_watching->prev;
+                    previous_watched_command_len = input->size;
 
+                    if (history->curr_watching) {
                         char tmp[history->curr_watching->command->length + ESC_SEQUENCE_MAX_LEN];
                         strcpy(tmp, history->curr_watching->command->content);
 
@@ -94,9 +100,7 @@ int main(int argc, char** argv)
                         }
                         write(1, tmp, history->curr_watching->command->length + strlen(esc_seq));
                         input_buffer_pop_last_n(input, previous_watched_command_len);
-                        // printf("PUSHING TO BUFFER STRING: %s\n", history->curr_watching->command->content);
                         input_buffer_push_string(input, history->curr_watching->command->content, history->curr_watching->command->length);
-                        // printf("BUFFER NOW %s\n", input->buffer);
 
                         if (history->curr_watching->command->length < previous_watched_command_len) {
                             for (int i = history->curr_watching->command->length; i < previous_watched_command_len; i++) {
@@ -106,8 +110,12 @@ int main(int argc, char** argv)
                             sprintf(esc_seq, "\033[%dD", previous_watched_command_len - history->curr_watching->command->length);
                             write(1, esc_seq, strlen(esc_seq));
                         }
-                        if (history->curr_watching->prev)
-                            history->curr_watching = history->curr_watching->prev;
+                    }
+                    else {
+                        for (int i = 0; i < previous_watched_command_len; i++) {
+                            write(1, "\033[1D \033[1D", strlen("\033[1D \033[1D"));
+                        }
+                        input_buffer_pop_last_n(input, previous_watched_command_len);
                     }
                     break;
                 case BACKSPACE:
