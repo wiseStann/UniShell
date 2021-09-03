@@ -9,7 +9,6 @@ command_t*
 command_parse_new(char* command)
 {
     command_t* struct_command = command_new(command);
-    if (!struct_command) return NULL;
 
     int cmd_name_len = strlen(struct_command->name);
 
