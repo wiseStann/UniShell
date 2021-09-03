@@ -33,8 +33,10 @@ input_buffer_push(input_t* input, char ch)
  */
 void input_buffer_push_at(input_t* input, char ch, unsigned int pos)
 {
+    if (pos > input->size) return;
+
     // in order not to make redudant memmove
-    if (pos == input->buffer[input->size])
+    if (pos == input->size - 1)
         input_buffer_push(input, ch);
     else {
         if (input->size >= input->capacity)
