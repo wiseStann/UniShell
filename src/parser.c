@@ -100,7 +100,8 @@ command_parse_syntax_is_valid(const char* command)
         if (curr == FORWARD_SLASH_SYMBOL)
             return FALSE;
         if (!char_array_contains(SPEC_SYMBOLS, curr) &&
-            (curr < 65 || curr > 90) && (curr < 97 || curr > 122))
+            (curr < 65 || curr > 90) && (curr < 97 || curr > 122) &&
+            (curr < 48 || curr > 57))
             return FALSE;
         if (curr == COMMENT_SYMBOL && !quote_is_completed)
             return FALSE;
