@@ -1,7 +1,6 @@
 # UniShell
 ### TODO
 * Auto-completion;
-* Character Insertion (insert character at any position of the content that the user has entered using left and right arrows);
 * Ability to integrate UniShell into other C program products;
 
 ### UniShell is an analogue of the Unix-like systems shell.
@@ -10,4 +9,5 @@
 * standard streams redirection;
 * Unix-like systems commands;
 * shell history;
+* characters insertion (perhaps it's not the feature, but i just put it here);
 * many many more.
