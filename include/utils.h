@@ -4,6 +4,8 @@
 #include "common.h"
 #include "sh_history.h"
 
+#define FILENAME_MAX_LEN 4096
+
 
     // ARRAYS UTILS //
 
@@ -12,6 +14,9 @@ int char_array_contains(const char*, char);
 
 // prepends a string to another string
 void char_array_prepend(char*, const char*);
+
+// appends a string to another string
+void char_array_append(char*, const char*);
 
 // checks if an array of commands contains a given command
 int commands_array_contains(avaliable_cmd_entry_t*, const char*);
@@ -26,15 +31,19 @@ void string_array_free(char**, unsigned int);
     // INPUT UTILS //
 
 // gets a symbol in non-canonical mode of input
-extern char getch();
+char getch();
 
 // gets the key that was pressed 
-extern int get_key_pressed();
+int get_key_pressed();
 
 
     // FILE UTILS //
 
-extern void file_write_history(const char*, history_t*);
+//
+int file_save_history(history_t*);
+
+//
+int file_load_history(const char*);
 
 
 
