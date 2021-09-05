@@ -1,5 +1,6 @@
 #include "../include/utils.h"
-
+#include "../include/parser.h"
+#include "../include/sh_history.h"
 
     // ARRAYS UTILS //
     
@@ -19,11 +20,22 @@ char_array_contains(const char* array, char symbol)
 /*
  *
  */
-void char_array_prepend(char* s, const char* t)
+void
+char_array_prepend(char* s, const char* t)
 {
     size_t len = strlen(t);
     memmove(s + len, s, strlen(s) + 1);
     memcpy(s, t, len);
+}
+
+/*
+ *
+ */
+void
+char_array_append(char* s, const char* t)
+{
+    size_t len = strlen(t);
+    strncat(s, t, len);
 }
 
 /*
@@ -57,7 +69,8 @@ commands_array_get_index(avaliable_cmd_entry_t* entries, const char* string)
 /*
  *
  */
-void string_array_free(char** str_array, unsigned int length)
+void
+string_array_free(char** str_array, unsigned int length)
 {
     if (str_array) {
         for (int i = 0; i < length; i++)
@@ -66,12 +79,14 @@ void string_array_free(char** str_array, unsigned int length)
     }
 }
 
+
     // INPUT UNTILS //
 
 /*
  *
  */
-char getch() {
+char
+getch() {
 	char buf = 0;
 	struct termios old = {0};
 	if (tcgetattr(0, &old) < 0)
@@ -94,11 +109,17 @@ char getch() {
 /*
  *
  */
-int get_key_pressed()
+int
+get_key_pressed()
 {
-    int getch_out;
-    getch_out = getch();
-    if (getch_out == ESCAPE_CODE) {
+    int getch_buf;
+    getch_buf = getch();
+
+    // in different machines backspace can be 8 or 127 coded
+    if (getch_buf == BS_KEY || getch_buf == BS_KEY2)
+        return BACKSPACE;
+
+    if (getch_buf == ESCAPE_CODE) {
         getch();
         switch(getch())
         {
@@ -110,14 +131,55 @@ int get_key_pressed()
                 return ARROW_RIGHT;
             case D_KEY:
                 return ARROW_LEFT;
-            // case D_KEY:
-                // return BACKSPACE;
         }
     }
-    return getch_out;
+    return getch_buf;
+}
+
+
+    // FILE UTILS //
+
+/*
+ *
+ */
+int
+file_save_history(history_t* history)
+{
+    char* filename = shell_history_get_save_filename(session_id);
+    FILE* file = fopen(filename, "a");
+    if (!file) return STATUS_FAILURE;
+
+    his_entry_t* curr = history->head;
+    while (curr) {
+        fprintf(file, "%s\n", curr->command->content);
+        curr = curr->next;
+    }
+    fclose(file);
+
+    return STATUS_SUCCESS;
 }
 
 /*
  *
  */
+int
+file_load_history(const char* id)
+{
+    char* filename = shell_history_get_save_filename(id);
+    FILE* file = fopen(filename, "r");
+    if (!file) return STATUS_FAILURE;
 
+    char* line = NULL;
+    size_t length = 0;
+    ssize_t read;
+    command_t* cmd;
+    shell_history_free(history);
+    history = shell_history_new();
+    while ((read = getline(&line, &length, file)) != -1) {
+        line[strlen(line) - 1] = TERMINAL_SYMBOL;
+        cmd = command_parse_new(line);
+        shell_history_append(history, cmd);
+    }
+
+    return STATUS_SUCCESS;
+}
