@@ -5,7 +5,8 @@
 
 char* prompt_basename = NULL;
 history_t* history = NULL;
-
+char* hist_file_name = NULL;
+char* session_id = NULL;
 
 /*
  *
@@ -54,6 +55,9 @@ avaliable_cmd_entry_t AVAILABLE_COMMANDS[COMMANDS_MAX_NUM] = {
     { .cmd_name = "chgpb", .description = "changes the prompt basename to a new one" },
     { .cmd_name = "cmdslist", .description = "shows available commands" },
     { .cmd_name = "hist", .description = "shows shell history" },
+    { .cmd_name = "histsave", .description = "saves current history to a UniShell history file" },
+    { .cmd_name = "histload", .description = "load shell history from the file by a given id" },
+    { .cmd_name = "histfree", .description = "frees session history" },
     { NULL, NULL },
 };
 
@@ -81,14 +85,30 @@ sh_malloc(unsigned int bytes)
  *
  */
 void
-set_prompt_basename(const char* basename)
+set_session_id()
 {
-    int basename_length = strlen(basename);
+    char unique_id[100];
+    time_t now = time(NULL);
+    struct tm* t = localtime(&now);
+
+    strftime(unique_id, sizeof(unique_id) - 1, "%d%m%Y%H%M", t);
+    session_id = (char*)sh_malloc(SESSION_ID_MAX_LEN);
+    strcpy(session_id, unique_id);
+}
+
+
+/*
+ *
+ */
+void
+set_prompt_basename(const char* _basename)
+{
+    int basename_length = strlen(_basename);
     if (basename_length) {
         if (prompt_basename != NULL)
             free(prompt_basename);
         prompt_basename = (char*)sh_malloc(basename_length + 1);   
-        strcpy(prompt_basename, basename);
+        strcpy(prompt_basename, _basename);
         prompt_basename[basename_length] = SPACE_SYMBOL;
         prompt_basename[basename_length + 1] = '\0';
     }
@@ -101,8 +121,25 @@ set_prompt_basename(const char* basename)
  */
 void
 write_prompt_basename()
+{ write(1, prompt_basename, strlen(prompt_basename)); }
+
+/*
+ *
+ */
+void
+set_history_filename(const char* _filename)
 {
-    write(1, prompt_basename, strlen(prompt_basename));
+    int his_filename_length = strlen(_filename);
+    if (his_filename_length) {
+        if (hist_file_name != NULL)
+            free(hist_file_name);
+        hist_file_name = (char*)sh_malloc(his_filename_length + 1);   
+        strcpy(hist_file_name, _filename);
+        hist_file_name[his_filename_length] = SPACE_SYMBOL;
+        hist_file_name[his_filename_length + 1] = '\0';
+    }
+    else
+        throw_error("History filename must be at least one character long, skipped\n");
 }
 
 /*
