@@ -12,10 +12,7 @@
 /*
         SAVING SESSION HISTORY TO THE FILE
         LOADING HISTORY FROM THE FILE BY A GIVEN ID
-        BACKSPACE DETECTING, DELETING SYMBOLS
 */
-
-
 
 
 
@@ -26,6 +23,10 @@
 
 int main(int argc, char** argv)
 {
+    set_session_id();
+    set_prompt_basename(DEFAULT_PROMPT_BASENAME);
+    set_history_filename(DEFAULT_HIST_FILENAME);
+
     // session history initialization
     history = shell_history_new();
 
@@ -33,11 +34,10 @@ int main(int argc, char** argv)
     command_t* cmd = NULL;
     his_entry_t* entry_to_retrieve = NULL;
 
-    int should_free_prompt_base = 0, cursor_pos_in_command = 0, non_canon_curr;
+    int free_prompt_base = 0, free_hist_filename = 0;
+    int cursor_pos_in_command = 0, non_canon_curr;
     unsigned previous_watched_command_len;
     char* esc_seq = (char*)sh_malloc(ESC_SEQUENCE_MAX_LEN);
-
-    set_prompt_basename(DEFAULT_PROMPT_BASENAME);
 
     while (TRUE)
     {
@@ -156,25 +156,29 @@ int main(int argc, char** argv)
         if (!input->size) { printf("\n"); continue; }
 
         putchar(non_canon_curr);
-        input_buffer_push(input, '\0');
 
         // check if the prompt basename has been changed. If so, we should free memory that
         // has been allocated for a new basename to avoid memory leaks
-        if (strcmp(prompt_basename, DEFAULT_PROMPT_BASENAME)) should_free_prompt_base = 1;
-        if (!strcmp(input->buffer, "exit")) break;
+        if (!strcmp(prompt_basename, DEFAULT_PROMPT_BASENAME)) free_prompt_base = 1;
+        if (!strcmp(hist_file_name, DEFAULT_HIST_FILENAME)) free_hist_filename = 1;
+        if (!strcmp(input->buffer, "exit")) { input_free(input); break; }
 
+        input_buffer_push(input, '\0');
         cmd = command_parse_new(input->buffer);
         if (cmd) {
+            shell_history_prepend(history, cmd);
             int status = command_handle(cmd);
         }
 
-        shell_history_prepend(history, cmd);
         input_free(input);
     }
     command_free(cmd);
     shell_history_free(history);
 
-    if (should_free_prompt_base) free(prompt_basename);
+    if (free_prompt_base) free(prompt_basename);
+    if (free_hist_filename) free(hist_file_name);
+
+    free(session_id);
 
     return 0;
 }
