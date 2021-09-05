@@ -81,11 +81,11 @@ command_args_to_string_array(command_t* command)
     int i;
 
     if (command->args_num) {
-        args = (char**)sh_malloc(++command->args_num * (sizeof(char*) + 1));
-        for (i = 0; i < command->args_num - 1; i++)
+        args = (char**)sh_malloc((command->args_num + 1) * sizeof(char*));
+        for (i = 0; i < command->args_num; i++)
             args[i] = (char*)sh_malloc(COMMAND_ARGUMENT_MAX_LEN);
 
-        for (i = 0; i < command->args_num - 1; i++) {
+        for (i = 0; i < command->args_num; i++) {
             strcpy(args[i], command->arguments[i]->name);
         }
         args[i] = (char*)NULL;
