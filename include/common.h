@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <termios.h>
 #include <fcntl.h>
+#include <time.h>
 
 #include <sys/wait.h>
 #include <sys/unistd.h>
@@ -18,7 +19,7 @@
 #define FALSE 0
 
 #define STATUS_SUCCESS TRUE
-#define STATUS_FAILURE FALSE
+#define STATUS_FAILURE -TRUE
 
 #define COMMANDS_MAX_NUM 16
 #define SPEC_SYMBOLS_MAX_NUM 32
@@ -26,14 +27,22 @@
 #define ESC_SEQUENCE_MAX_LEN 16
 
 #define DEFAULT_PROMPT_BASENAME "UniShell$>"
+#define DEFAULT_HIST_FILENAME "uni_shell_hist"
+#define HIST_FILE_EXT ".hist"
 
+#define STRING(_x) #_x
+
+#define SESSION_ID_MAX_LEN 16
 
 extern char* prompt_basename;
 extern history_t* history;
+extern char* hist_file_name;
+extern char* session_id;
+
 
 /* shows a given error message to the user
    it's like a simple printf */
-extern void throw_error(const char* fmt, ...);
+void throw_error(const char* fmt, ...);
 
 
 // available command structure
@@ -61,7 +70,12 @@ typedef enum cmds_aliases {
     EXIT_CMD,
     CHANGE_PB_CMD,
     CMDS_LIST_CMD,
-    HISTSHOW_CMD,
+
+    // history commands
+    HIST_SHOW_CMD,
+    HIST_SAVE_CMD,
+    HIST_LOAD_CMD,
+    HIST_FREE_CMD,
 } COMMANDS_ALIASES;
 
 
@@ -146,7 +160,7 @@ enum SYMBOL_KIND {
 // these keys can either be independent or be part of another keys combination
 typedef enum keys_codes {
     BS_KEY = 8,
-    // BS_KEY2 = 127,
+    BS_KEY2 = 127,
     ENTER_CODE = 10,
     ESCAPE_CODE = 27,
     A_KEY = 65,
@@ -174,11 +188,17 @@ typedef enum spec_keys_codes {
 // custom allocation function
 void* sh_malloc(unsigned int);
 
+//
+void set_session_id();
+
 // changes the prompt basename
 void set_prompt_basename(const char*);
 
 //
 void write_prompt_basename();
+
+//
+void set_history_filename(const char*);
 
 // shows available commands
 void commands_show();
