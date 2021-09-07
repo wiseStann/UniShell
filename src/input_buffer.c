@@ -31,7 +31,7 @@ input_buffer_push(input_t* input, char ch)
 /*
  *
  */
-void input_buffer_push_at(input_t* input, char ch, unsigned int pos)
+void input_buffer_push_at(input_t* input, char ch, unsigned pos)
 {
     if (pos > input->size) return;
 
@@ -56,7 +56,7 @@ void input_buffer_push_at(input_t* input, char ch, unsigned int pos)
 /*
  *
  */
-void input_buffer_push_string(input_t* input, char* string, unsigned int size)
+void input_buffer_push_string(input_t* input, char* string, unsigned size)
 {
     for (int i = 0; i < size; i++)
         input_buffer_push(input, string[i]);
@@ -91,7 +91,7 @@ void input_buffer_pop_last_n(input_t* input, unsigned bytes)
  *
  */
 void
-input_buffer_reallocate(input_t* input, unsigned int bytes)
+input_buffer_reallocate(input_t* input, unsigned bytes)
 {
     input->buffer = realloc((void*)input->buffer, bytes);
     input->capacity = bytes;
