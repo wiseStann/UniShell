@@ -20,10 +20,10 @@ input_t* input_new();
 void input_buffer_push(input_t*, char);
 
 //
-void input_buffer_push_at(input_t*, char, unsigned int);
+void input_buffer_push_at(input_t*, char, unsigned);
 
 //
-void input_buffer_push_string(input_t*, char*, unsigned int);
+void input_buffer_push_string(input_t*, char*, unsigned);
 
 //
 void input_buffer_pop(input_t*);
@@ -32,7 +32,7 @@ void input_buffer_pop(input_t*);
 void input_buffer_pop_last_n(input_t*, unsigned);
 
 // 
-void input_buffer_reallocate(input_t*, unsigned int);
+void input_buffer_reallocate(input_t*, unsigned);
 
 //
 void input_free(input_t*);
