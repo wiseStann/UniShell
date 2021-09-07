@@ -20,6 +20,7 @@ typedef struct cmd {
     argument_t** arguments;
     unsigned args_num;
     unsigned table_index;
+    int is_valid;
 } command_t;
 
 
@@ -27,7 +28,16 @@ typedef struct cmd {
 argument_t* command_argument_new(unsigned int);
 
 // creates a new command struct based on a given command
-command_t* command_new(const char*);
+command_t* command_new(char*, int);
+
+// returns the length of the command
+unsigned command_length(const char*, int);
+
+// trims the command
+void command_trim(char*);
+
+// shows a command information
+void command_info(command_t*);
 
 // frees a command struct
 void command_free(command_t*);
