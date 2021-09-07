@@ -46,11 +46,6 @@ throw_error(const char* fmt, ...)
 
 // available commands
 avaliable_cmd_entry_t AVAILABLE_COMMANDS[COMMANDS_MAX_NUM] = {
-    { .cmd_name = "echo", .description = "prints something to console or to the I/O streams" },
-    { .cmd_name = "ls", .description = "shows all files and dirs in the current directory" },
-    { .cmd_name = "cat", .description = "prints the data from the stream to the console" },
-    { .cmd_name = "pwd", .description = "shows path to the current directory" },
-    { .cmd_name = "clear", .description = "clears the screen" },
     { .cmd_name = "exit", .description = "exits this applications" },
     { .cmd_name = "chgpb", .description = "changes the prompt basename to a new one" },
     { .cmd_name = "cmdslist", .description = "shows available commands" },
