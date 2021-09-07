@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <termios.h>
 #include <fcntl.h>
+#include <ctype.h>
 #include <time.h>
 
 #include <sys/wait.h>
@@ -32,7 +33,7 @@
 
 #define STRING(_x) #_x
 
-#define SESSION_ID_MAX_LEN 16
+#define SESSION_ID_MAX_LEN 16 // it's represented as date ddmmyyyyHHMM
 
 extern char* prompt_basename;
 extern history_t* history;
@@ -62,13 +63,12 @@ extern const unsigned int SPEC_SYMBOLS_NUM;
 
 // commands aliases
 typedef enum cmds_aliases {
-    ECHO_CMD,
-    LS_CMD,
-    CAT_CMD,
-    PWD_CMD,
-    CLEAR_CMD,
     EXIT_CMD,
+
+    // settings
     CHANGE_PB_CMD,
+
+    // information
     CMDS_LIST_CMD,
 
     // history commands
