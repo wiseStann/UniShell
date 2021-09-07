@@ -41,6 +41,33 @@ char_array_append(char* s, const char* t)
 /*
  *
  */
+void char_array_trim(char* s)
+{
+    char* contents = s;
+    int len = strlen(contents);
+
+    while(isspace(contents[len - 1]))
+        contents[--len] = 0;
+    while(*contents && isspace(*contents))
+        ++contents, --len;
+
+    memmove(s, contents, len + 1);
+}
+
+/*
+ *
+ */
+char* char_array_substring(const char* s, unsigned start, unsigned end)
+{
+    char* substr = (char*)sh_malloc(strlen(s));
+    memcpy(substr, &s[start], end);
+    substr[end] = '\0';
+    return substr;
+}
+
+/*
+ *
+ */
 int
 commands_array_contains(avaliable_cmd_entry_t* entries, const char* string)
 {
@@ -177,7 +204,7 @@ file_load_history(const char* id)
     history = shell_history_new();
     while ((read = getline(&line, &length, file)) != -1) {
         line[strlen(line) - 1] = TERMINAL_SYMBOL;
-        cmd = command_parse_new(line);
+        cmd = command_parse_new(line, FALSE);
         shell_history_append(history, cmd);
     }
 
