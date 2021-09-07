@@ -6,17 +6,15 @@
  *
  */
 command_t*
-command_parse_new(char* command)
+command_parse_new(char* command, int pipes_visible)
 {
-    command_t* struct_command = command_new(command);
-
-    int cmd_name_len = strlen(struct_command->name);
+    command_t* struct_command = command_new(command, pipes_visible);
 
     int args_idx = 0, next_token_idx = 0, quote_is_completed = 1, i = 0;
     argument_t* argument = command_argument_new(next_token_idx);
-    char* tmp = strdup(command);
+    char* tmp = strdup(struct_command->content), *ptr;
 
-    char* next_token = strtok(command, " ");
+    char* next_token = strtok(tmp, " ");
     while (next_token)
     {
         next_token_idx++;
@@ -34,6 +32,8 @@ command_parse_new(char* command)
                 argument->name[argument->size++] = *tmp;
             } while (*(tmp + 1) != DOUBLE_QUOTE_SYMBOL);
             argument->name[argument->size] = TERMINAL_SYMBOL;
+        } else if (next_token[0] == VERTICAL_BAR_SYMBOL) {
+            break;
         } else {
             tmp += strlen(next_token);
             strcpy(argument->name, next_token);
@@ -55,41 +55,33 @@ command_parse_new(char* command)
  *
  */
 int
-command_parse_is_valid(const char* command)
+command_parse_is_valid(command_t* command)
 {
-    char* basename = command_parse_get_basename(command);
-    int ex_factor = command_parse_basename_exists(basename);
+    // int ex_factor = command_parse_basename_exists(command);
     int val_syntax_factor = command_parse_syntax_is_valid(command);
-    if (!ex_factor) {
-        throw_error("! Unknown command '%s'\n", basename);
-        throw_error("! Commands list is available by typing 'cmdslist'\n");
-    }
-    else if (!val_syntax_factor) {
+
+    // MAKE A CHECK FOR UNKNOWN OR KNOWN COMMAND BASED ON WHAT EXECVP FUNCTION RETURNS/PRODUCES 
+
+    // if (!ex_factor) {
+    //     throw_error("! Unknown command '%s'\n", command->name);
+    //     throw_error("! Commands list is available by typing 'cmdslist'\n");
+    // }
+    if (!val_syntax_factor) {
         throw_error("! Invalid command syntax\n");
     }
-    free(basename);
-    return ex_factor && val_syntax_factor;
+    // return ex_factor && val_syntax_factor;
 }
 
 /*
  *
  */
 int
-command_parse_basename_exists(const char* basename)
-{
-    return commands_array_contains(AVAILABLE_COMMANDS, basename);
-}
-
-/*
- *
- */
-int
-command_parse_syntax_is_valid(const char* command)
+command_parse_syntax_is_valid(command_t* command)
 {
     char curr, prev;
     unsigned int quotes_num = 0, quote_is_completed = 1;
-    for (int i = 0; command[i] != 0; i++) {
-        curr = command[i];
+    for (int i = 0; command->content[i] != 0; i++) {
+        curr = command->content[i];
         if (curr == DOUBLE_QUOTE_SYMBOL) {
             if (quote_is_completed && prev != SPACE_SYMBOL) return FALSE;
             quote_is_completed = (quote_is_completed + 1) % 2;
@@ -117,29 +109,30 @@ command_parse_syntax_is_valid(const char* command)
  *
  */
 unsigned int
-command_parse_arguments_number(const char* command)
+command_parse_arguments_number(command_t* command)
 {
     char curr, prev;
     unsigned int args_num = 0, quote_is_completed = 1;
-    unsigned int cmd_len = strlen(command);
+    unsigned int cmd_len = strlen(command->content);
+    
     for (int i = 0; i <= cmd_len; i++) {
-        curr = command[i];
+        curr = command->content[i];
         
         if (curr == SPACE_SYMBOL && prev == SPACE_SYMBOL) continue;
         if ((curr == SPACE_SYMBOL || curr == TERMINAL_SYMBOL) && prev != SPACE_SYMBOL) {
             args_num++;
-        }
-        else if (curr == DOUBLE_QUOTE_SYMBOL) {
+        } else if (curr == DOUBLE_QUOTE_SYMBOL) {
             if (quote_is_completed) {
                 do {
                     i++;
-                } while (command[i] != DOUBLE_QUOTE_SYMBOL);
+                } while (command->content[i] != DOUBLE_QUOTE_SYMBOL);
             }
             quote_is_completed = (quote_is_completed + 1) % 2;
         } else if (curr == COMMENT_SYMBOL) {
             args_num++;
             break;
-        }
+        } else if (curr == VERTICAL_BAR_SYMBOL)
+            break;
         prev = curr;
     }
     return args_num;
@@ -149,12 +142,12 @@ command_parse_arguments_number(const char* command)
  *
  */
 char*
-command_parse_get_basename(const char* command)  
+command_parse_get_basename(command_t* command)  
 {
     char* basename = (char*)sh_malloc(COMMAND_NAME_MAX_LEN);
     int i;
-    for (i = 0; command[i] != ' ' && command[i] != 0; i++) {
-        basename[i] = command[i];
+    for (i = 0; command->content[i] != ' ' && command->content[i] != 0; i++) {
+        basename[i] = command->content[i];
     }
     basename[i] = '\0';
     return basename;
