@@ -4,7 +4,7 @@
 #include "common.h"
 #include "sh_history.h"
 
-#define FILENAME_MAX_LEN 4096
+#define FILENAME_MAX_LEN FILENAME_MAX
 
 
     // ARRAYS UTILS //
@@ -17,6 +17,12 @@ void char_array_prepend(char*, const char*);
 
 // appends a string to another string
 void char_array_append(char*, const char*);
+
+// trims a given string
+void char_array_trim(char*);
+
+// 
+char* char_array_substring(const char*, unsigned, unsigned);
 
 // checks if an array of commands contains a given command
 int commands_array_contains(avaliable_cmd_entry_t*, const char*);
