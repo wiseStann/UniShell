@@ -1,7 +1,7 @@
 # UniShell
 ### TODO
 * Auto-completion;
-* Ability to integrate UniShell into other C program products;
+* Ability to integrate UniShell into other C program products, including HyperionTextEditor;
 
 ### UniShell is an analogue of the Unix-like systems shell.
 #### UniShell provides:
