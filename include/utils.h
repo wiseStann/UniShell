@@ -36,8 +36,12 @@ void string_array_free(char**, unsigned int);
 
     // INPUT UTILS //
 
+#ifdef __unix__
+
 // gets a symbol in non-canonical mode of input
 char getch();
+
+#endif
 
 // gets the key that was pressed 
 int get_key_pressed();
