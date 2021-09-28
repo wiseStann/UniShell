@@ -109,6 +109,8 @@ string_array_free(char** str_array, unsigned int length)
 
     // INPUT UNTILS //
 
+#ifdef __unix__
+
 /*
  *
  */
@@ -133,34 +135,51 @@ getch() {
 	return buf;
 }
 
+#endif
+
 /*
  *
  */
 int
 get_key_pressed()
 {
-    int getch_buf;
-    getch_buf = getch();
+    int init_buffer, ch = -1;
+    init_buffer = getch();
+
+    //printf("\nInit buffer: %d", init_buffer);
 
     // in different machines backspace can be 8 or 127 coded
-    if (getch_buf == BS_KEY || getch_buf == BS_KEY2)
+    if (init_buffer == BS_KEY || init_buffer == BS_KEY2)
         return BACKSPACE;
 
-    if (getch_buf == ESCAPE_CODE) {
+#ifdef __unix__
+
+    if (init_buffer == ESCAPE_CODE) {
         getch();
-        switch(getch())
-        {
-            case A_KEY:
-                return ARROW_UP;
-            case B_KEY:
-                return ARROW_DOWN;
-            case C_KEY:
-                return ARROW_RIGHT;
-            case D_KEY:
-                return ARROW_LEFT;
-        }
+        ch = getch();
     }
-    return getch_buf;
+
+#elif _WIN32
+
+    if (init_buffer == WIN_META_CODE1 || init_buffer == WIN_META_CODE2)
+        ch = getch();
+
+#endif
+
+    switch (ch)
+    {
+        case A_KEY:
+            return ARROW_UP;
+        case B_KEY:
+            return ARROW_DOWN;
+        case C_KEY:
+            return ARROW_RIGHT;
+        case D_KEY:
+            return ARROW_LEFT;
+        default: break;
+    }
+
+    return init_buffer;
 }
 
 
