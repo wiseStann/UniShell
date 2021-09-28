@@ -16,7 +16,7 @@ throw_error(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
- 
+   
     while (*fmt != '\0') {
         if (*fmt == '%') {
             fmt++;
