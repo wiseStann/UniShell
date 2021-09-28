@@ -5,13 +5,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <termios.h>
-#include <fcntl.h>
 #include <ctype.h>
 #include <time.h>
+#include <fcntl.h>
+
+
+#ifdef _WIN32
+
+#include <windows.h>
+#include <conio.h>
+
+#elif __unix__
 
 #include <sys/wait.h>
 #include <sys/unistd.h>
+#include <termios.h>
+
+#endif
 
 #include "sh_history.h"
 
@@ -33,7 +43,8 @@
 
 #define STRING(_x) #_x
 
-#define SESSION_ID_MAX_LEN 16 // it's represented as date ddmmyyyyHHMM
+#define SESSION_ID_MAX_LEN 16 // session id is represented as date ddmmyyyyHHMM
+
 
 extern char* prompt_basename;
 extern history_t* history;
@@ -161,12 +172,34 @@ enum SYMBOL_KIND {
 typedef enum keys_codes {
     BS_KEY = 8,
     BS_KEY2 = 127,
+
+#ifdef __unix__
     ENTER_CODE = 10,
+#elif _WIN32
+    ENTER_CODE = 13,
+#endif
+    // Prefix for special keys representation on unix
+    // i.e. arrow up (^[[A)
     ESCAPE_CODE = 27,
+   
+#ifdef _WIN32
+    // Prefixes meta code for special keys representation on windows
+    WIN_META_CODE1 = 0,
+    WIN_META_CODE2 = 224,
+#endif
+
+#ifdef __unix__
     A_KEY = 65,
     B_KEY = 66,
     C_KEY = 67,
     D_KEY = 68,
+#elif _WIN32
+    A_KEY = 72,
+    B_KEY = 80,
+    C_KEY = 75,
+    D_KEY = 77,
+#endif
+
 } KEYS_CODES;
 
 
