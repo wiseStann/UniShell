@@ -14,7 +14,8 @@
         UNKNOWN COMMANDS HANDLING WITH EXECVP
         WRITE CURSOR MOVEMENT MACROSES
         STREAM REDIRECTION HANDLING
-        FIX EXIT, I THINK THE REASON IS OTHER PROCESSES CREATED IN HANDLERS 
+        FIX EXIT, I THINK THE REASON IS OTHER PROCESSES CREATED IN HANDLERS
+        CREATE A WINDOW FOR THE UNISHELL
 */
 
 
@@ -160,7 +161,7 @@ int main(int argc, char** argv)
         // has been allocated for a new basename to avoid memory leaks
         if (!strcmp(prompt_basename, DEFAULT_PROMPT_BASENAME)) free_prompt_base = 1;
         if (!strcmp(hist_file_name, DEFAULT_HIST_FILENAME)) free_hist_filename = 1;
-        if (!strcmp(input->buffer, "exit")) { break; }
+        if (!strcmp(input->buffer, "exit")) { input_free(input); goto cleaning_exit; }
 
         cmd = command_parse_new(input->buffer, FALSE);
         shell_history_prepend(history, cmd);
@@ -187,6 +188,7 @@ int main(int argc, char** argv)
         input_free(input);
     }
 
+cleaning_exit:
     shell_history_free(history);
 
     if (free_prompt_base) free(prompt_basename);
