@@ -29,6 +29,9 @@ void input_buffer_push_string(input_t*, char*, unsigned);
 void input_buffer_pop(input_t*);
 
 //
+void input_buffer_pop_at(input_t*, unsigned);
+
+//
 void input_buffer_pop_last_n(input_t*, unsigned);
 
 // 
