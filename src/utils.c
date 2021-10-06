@@ -2,6 +2,28 @@
 #include "../include/parser.h"
 #include "../include/sh_history.h"
 
+
+    // CURSOR UTILS //
+
+/*
+ *
+ */
+void CURSOR_MOVE_LEFT(int _x) {
+    char esc_seq[ESC_SEQUENCE_MAX_LEN];
+    sprintf(esc_seq, "\033[%dD", _x);
+    write(1, esc_seq, strlen(esc_seq));
+}
+
+/*
+ *
+ */
+void CURSOR_MOVE_RIGHT(int _x) {
+    char esc_seq[ESC_SEQUENCE_MAX_LEN];
+    sprintf(esc_seq, "\033[%dC", _x);
+    write(1, esc_seq, strlen(esc_seq));
+}
+
+
     // ARRAYS UTILS //
     
 /*
