@@ -68,10 +68,21 @@ void input_buffer_push_string(input_t* input, char* string, unsigned size)
 void input_buffer_pop(input_t* input)
 {
     if (input->size > 0) {
-        memmove (
-            &(input->buffer[input->size - 1]),
-            &(input->buffer[input->size]),
-            sizeof(char)
+        input_buffer_pop_at(input, input->size - 1);
+    }
+}
+
+/*
+ *
+ */
+void input_buffer_pop_at(input_t* input, unsigned pos)
+{
+    if (input->size > 0 && pos >= 0 && pos < input->size) {
+        size_t mem_block = input->size - pos;
+        memmove(
+            &(input->buffer[pos]),
+            &(input->buffer[pos + 1]),
+            mem_block
         );
         input->size--;
     }
