@@ -196,8 +196,8 @@ typedef enum keys_codes {
 #elif _WIN32
     A_KEY = 72,
     B_KEY = 80,
-    C_KEY = 75,
-    D_KEY = 77,
+    C_KEY = 77,
+    D_KEY = 75,
 #endif
 
 } KEYS_CODES;
