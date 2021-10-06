@@ -7,6 +7,13 @@
 #define FILENAME_MAX_LEN FILENAME_MAX
 
 
+// CURSOR MOVEMENTS MACROSES
+
+extern void CURSOR_MOVE_LEFT(int);
+
+extern void CURSOR_MOVE_RIGHT(int);
+
+
     // ARRAYS UTILS //
 
 // checks if an array contains a given character
