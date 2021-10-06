@@ -36,7 +36,7 @@ int main(int argc, char** argv)
     int free_prompt_base = 0, free_hist_filename = 0;
     int cursor_pos_in_command = 0, non_canon_curr;
     unsigned previous_watched_command_len;
-    char* esc_seq = (char*)sh_malloc(ESC_SEQUENCE_MAX_LEN), *ptr;
+    char esc_seq[ESC_SEQUENCE_MAX_LEN], *ptr;
 
     while (TRUE)
     {
@@ -75,8 +75,7 @@ int main(int argc, char** argv)
                                 char space = SPACE_SYMBOL;
                                 write(1, &space, 1);
                             }
-                            sprintf(esc_seq, "\033[%dD", previous_watched_command_len - history->curr_watching->command->length);
-                            write(1, esc_seq, strlen(esc_seq));
+                            CURSOR_MOVE_LEFT(previous_watched_command_len - history->curr_watching->command->length);
                         }
                     }
                     break;
@@ -101,8 +100,7 @@ int main(int argc, char** argv)
                                 char space = SPACE_SYMBOL;
                                 write(1, &space, 1);
                             }
-                            sprintf(esc_seq, "\033[%dD", previous_watched_command_len - history->curr_watching->command->length);
-                            write(1, esc_seq, strlen(esc_seq));
+                            CURSOR_MOVE_LEFT(previous_watched_command_len - history->curr_watching->command->length);
                         }
                     }
                     else {
@@ -115,22 +113,30 @@ int main(int argc, char** argv)
                     break;
                 case ARROW_LEFT:
                     if (cursor_pos_in_command > 0) {
-                        write(1, "\033[1D", strlen("\033[1D"));
+                        CURSOR_MOVE_LEFT(1);
                         cursor_pos_in_command--;
                     }
                     break;
                 case ARROW_RIGHT:
                     if (cursor_pos_in_command < input->size) {
-                        write(1, "\033[1C", strlen("\033[1C"));
+                        CURSOR_MOVE_RIGHT(1);
                         cursor_pos_in_command++;
                     }
                     break;
                 case BACKSPACE:
                     if (input->size > 0) {
+                        input_buffer_pop_at(input, --cursor_pos_in_command);
                         write(1, "\033[1D \033[1D", strlen("\033[1D \033[1D"));
-                        input_buffer_pop(input);
+                        
+                        if (cursor_pos_in_command != input->size) {
+                            for (int i = cursor_pos_in_command; i < input->size; i++) {
+                                write(1, &input->buffer[i], 1);
+                            }
+
+                            write(1, " \033[1D", strlen(" \033[1D"));
+                            CURSOR_MOVE_LEFT(input->size - cursor_pos_in_command);
+                        }
                     }
-                    cursor_pos_in_command--;
                     break;
                 default:
                     if (cursor_pos_in_command < input->size) {
@@ -138,8 +144,8 @@ int main(int argc, char** argv)
                         for (int i = cursor_pos_in_command; i < input->size; i++) {
                             write(1, &input->buffer[i], 1);
                         }
-                        sprintf(esc_seq, "\033[%dD", input->size - cursor_pos_in_command);
-                        write(1, esc_seq, strlen(esc_seq));
+                        
+                        CURSOR_MOVE_LEFT(input->size - cursor_pos_in_command);
 
                         input_buffer_push_at(input, non_canon_curr, cursor_pos_in_command);
                         cursor_pos_in_command++;
