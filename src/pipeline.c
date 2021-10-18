@@ -69,14 +69,19 @@ pipeline_commands_handle(pipe_cmds_t* commands)
     if (commands->size == 1) {
         command_t* whole_command = commands->cmds_list[0];
         COMMANDS_ALIASES cmd_alias = (COMMANDS_ALIASES)(whole_command->table_index);
-        char** args = command_args_to_string_array(whole_command);
         int status;
 
-        int ret;
-
 #ifdef __unix__
-
+        char** args = command_args_to_string_array(whole_command);
         if (fork() == 0) {
+#elif _WIN32
+        STARTUPINFO si;
+        PROCESS_INFORMATION pi;
+
+        ZeroMemory(&si, sizeof(si));
+        si.cb = sizeof(si);
+        ZeroMemory(&pi, sizeof(pi));
+#endif
             switch (cmd_alias) {
                 case CMDS_LIST_CMD:
                     commands_show();
@@ -108,20 +113,30 @@ pipeline_commands_handle(pipe_cmds_t* commands)
                     history = shell_history_new();
                     break;
                 default:
+#ifdef __unix__
                     return execvp(whole_command->name, args);
+#elif _WIN32
+                    if (!CreateProcess(NULL, whole_command->content, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+                        printf("CreateProcess failed (%d).\n", GetLastError());
+                        return STATUS_FAILURE;
+                    }
+
+                    // Wait until child process exits.
+                    WaitForSingleObject(pi.hProcess, INFINITE);
+
+                    // Close process and thread handles. 
+                    CloseHandle(pi.hProcess);
+                    CloseHandle(pi.hThread);
+#endif
             }
         }
+
+#ifdef __unix__
         wait(NULL);
-
-#elif _WIN32
-
-#endif
-        printf("\nCommand has been successfully handled\n");
         string_array_free(args, whole_command->args_num);
     }
-    else {
-        pipeline_pipes_handle(commands);
-    }
+#endif
+    else pipeline_pipes_handle(commands);
 
     return STATUS_SUCCESS;
 }
