@@ -5,6 +5,7 @@
 #include "include/sh_history.h"
 #include "include/utils.h"
 #include "include/pipeline.h"
+#include "include/interact.h"
 
 
 
@@ -35,8 +36,7 @@ int main(int argc, char** argv)
 
     int free_prompt_base = 0, free_hist_filename = 0;
     int cursor_pos_in_command = 0, non_canon_curr;
-    unsigned previous_watched_command_len;
-    char esc_seq[ESC_SEQUENCE_MAX_LEN], *ptr;
+    char* ptr;
 
     while (TRUE)
     {
@@ -44,119 +44,8 @@ int main(int argc, char** argv)
         write_prompt_basename();
 
         while ((non_canon_curr = get_key_pressed()) != ENTER_CODE)
-        {
-            switch (non_canon_curr)
-            {
-                case ARROW_UP:
-                    if (!history->curr_watching) history->curr_watching = history->head;
-                    else if (history->curr_watching->next) history->curr_watching = history->curr_watching->next;
-                    
-                    if (history->curr_watching) {
-                        char tmp[history->curr_watching->command->length + ESC_SEQUENCE_MAX_LEN];
-                        strcpy(tmp, history->curr_watching->command->content);
-                        previous_watched_command_len = input->size;
-                        
-                        if (previous_watched_command_len > 0) {
-                            sprintf(esc_seq, "\033[%dD", previous_watched_command_len);
-                            char_array_prepend(tmp, esc_seq);
-                        }
+            handle_keyboard_input(input, &cursor_pos_in_command, non_canon_curr);
 
-                        if (previous_watched_command_len > 0)
-                            write(1, tmp, history->curr_watching->command->length + strlen(esc_seq));
-                        else
-                            write(1, tmp, history->curr_watching->command->length);
-                        cursor_pos_in_command += history->curr_watching->command->length;
-
-                        input_buffer_pop_last_n(input, previous_watched_command_len);
-                        input_buffer_push_string(input, history->curr_watching->command->content, history->curr_watching->command->length);
-
-                        if (history->curr_watching->command->length < previous_watched_command_len) {
-                            for (int i = history->curr_watching->command->length; i < previous_watched_command_len; i++) {
-                                char space = SPACE_SYMBOL;
-                                write(1, &space, 1);
-                            }
-                            CURSOR_MOVE_LEFT(previous_watched_command_len - history->curr_watching->command->length);
-                        }
-                    }
-                    break;
-                case ARROW_DOWN:
-                    if (history->curr_watching) history->curr_watching = history->curr_watching->prev;
-                    previous_watched_command_len = input->size;
-
-                    if (history->curr_watching) {
-                        char tmp[history->curr_watching->command->length + ESC_SEQUENCE_MAX_LEN];
-                        strcpy(tmp, history->curr_watching->command->content);
-
-                        if (previous_watched_command_len > 0) {
-                            sprintf(esc_seq, "\033[%dD", previous_watched_command_len);
-                            char_array_prepend(tmp, esc_seq);
-                        }
-                        write(1, tmp, history->curr_watching->command->length + strlen(esc_seq));
-                        input_buffer_pop_last_n(input, previous_watched_command_len);
-                        input_buffer_push_string(input, history->curr_watching->command->content, history->curr_watching->command->length);
-
-                        if (history->curr_watching->command->length < previous_watched_command_len) {
-                            for (int i = history->curr_watching->command->length; i < previous_watched_command_len; i++) {
-                                char space = SPACE_SYMBOL;
-                                write(1, &space, 1);
-                            }
-                            CURSOR_MOVE_LEFT(previous_watched_command_len - history->curr_watching->command->length);
-                        }
-                    }
-                    else {
-                        for (int i = 0; i < previous_watched_command_len; i++) {
-                            write(1, "\033[1D \033[1D", strlen("\033[1D \033[1D"));
-                        }
-                        input_buffer_pop_last_n(input, previous_watched_command_len);
-                        cursor_pos_in_command = 0;
-                    }
-                    break;
-                case ARROW_LEFT:
-                    if (cursor_pos_in_command > 0) {
-                        CURSOR_MOVE_LEFT(1);
-                        cursor_pos_in_command--;
-                    }
-                    break;
-                case ARROW_RIGHT:
-                    if (cursor_pos_in_command < input->size) {
-                        CURSOR_MOVE_RIGHT(1);
-                        cursor_pos_in_command++;
-                    }
-                    break;
-                case BACKSPACE:
-                    if (input->size > 0) {
-                        input_buffer_pop_at(input, --cursor_pos_in_command);
-                        write(1, "\033[1D \033[1D", strlen("\033[1D \033[1D"));
-                        
-                        if (cursor_pos_in_command != input->size) {
-                            for (int i = cursor_pos_in_command; i < input->size; i++) {
-                                write(1, &input->buffer[i], 1);
-                            }
-
-                            write(1, " \033[1D", strlen(" \033[1D"));
-                            CURSOR_MOVE_LEFT(input->size - cursor_pos_in_command);
-                        }
-                    }
-                    break;
-                default:
-                    if (cursor_pos_in_command < input->size) {
-                        write(1, &non_canon_curr, 1);
-                        for (int i = cursor_pos_in_command; i < input->size; i++) {
-                            write(1, &input->buffer[i], 1);
-                        }
-                        
-                        CURSOR_MOVE_LEFT(input->size - cursor_pos_in_command);
-
-                        input_buffer_push_at(input, non_canon_curr, cursor_pos_in_command);
-                        cursor_pos_in_command++;
-                    } else {
-                        write(1, &non_canon_curr, 1);
-                        input_buffer_push(input, non_canon_curr);
-                        cursor_pos_in_command++;
-                    }
-                    break;
-            }
-        }
         cursor_pos_in_command = 0;
         if (!input->size) { printf("\n"); continue; }
 
@@ -189,6 +78,7 @@ int main(int argc, char** argv)
                 }
             } while (*buffer);
             int status = pipeline_commands_handle(pipeline_commands);
+            if (!status) printf("Pipeline cannot be handled");
             pipeline_commands_free(pipeline_commands);
         }
         input_free(input);
