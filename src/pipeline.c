@@ -152,20 +152,23 @@ pipeline_pipes_handle(pipe_cmds_t* pipe_commands)
     char** args1 = command_args_to_string_array(comm1);
     command_t* comm2 = pipe_commands->cmds_list[1];
     char** args2 = command_args_to_string_array(comm2);
-    //pipe(pipefd);
-    //if (fork() == 0) {
-    //    //child
-    //    //write
-    //    close(pipefd[0]);
-    //    dup2(pipefd[1], STDOUT_FILENO);
-    //    execvp(comm1->name, args1);
-    //} else {  
-    //    //parent
-    //    close(pipefd[1]);
-    //    dup2(pipefd[0], STDIN_FILENO);
-    //    execvp(comm2->name, args2);
-    //}
-    printf("Pipes have been successfully handled\n");
+#ifdef __unix__    
+    pipe(pipefd);
+    if (fork() == 0) {
+        //child
+        //write
+        close(pipefd[0]);
+        dup2(pipefd[1], STDOUT_FILENO);
+        execvp(comm1->name, args1);
+    } else {  
+        //parent
+        close(pipefd[1]);
+        dup2(pipefd[0], STDIN_FILENO);
+        execvp(comm2->name, args2);
+    }
+#elif _WIN32
+    
+#endif
 
     return 0;
 }
