@@ -9,11 +9,11 @@
 #include <time.h>
 #include <fcntl.h>
 
-
 #ifdef _WIN32
 
 #include <windows.h>
 #include <conio.h>
+#include <io.h>
 
 #elif __unix__
 
@@ -24,7 +24,6 @@
 #endif
 
 #include "sh_history.h"
-
 
 #define TRUE 1
 #define FALSE 0
@@ -43,7 +42,7 @@
 
 #define STRING(_x) #_x
 
-#define SESSION_ID_MAX_LEN 16 // session id is represented as date ddmmyyyyHHMM
+#define SESSION_ID_MAX_LEN 16 // session id is represented as datetime ddmmyyyyHHMM
 
 
 extern char* prompt_basename;
